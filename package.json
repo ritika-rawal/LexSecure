@@ -1,0 +1,17 @@
+{
+  "name": "lexsecure",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Secure Lawyer Appointment and Client Management System coursework project.",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "install:all": "npm install --workspaces"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}

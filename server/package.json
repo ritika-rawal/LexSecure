@@ -1,0 +1,10 @@
+{
+  "name": "@lexsecure/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "LexSecure Express API backend.",
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}
