@@ -4,7 +4,11 @@
   "private": true,
   "type": "module",
   "description": "LexSecure React frontend.",
-  "scripts": {},
+  "scripts": {
+    "dev": "vite --host localhost --port 3000"
+  },
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "vite": "^5.3.4"
+  }
 }

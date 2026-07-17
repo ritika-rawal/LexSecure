@@ -1,6 +1,11 @@
 import dotenv from 'dotenv';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-dotenv.config();
+const currentDirectory = dirname(fileURLToPath(import.meta.url));
+const envFilePath = resolve(currentDirectory, '../../.env');
+
+dotenv.config({ path: envFilePath });
 
 const DEFAULT_PORT = 5000;
 const DEFAULT_CLIENT_ORIGIN = 'http://localhost:5173';
@@ -25,6 +30,7 @@ const parseAllowedOrigins = (value) => {
 };
 
 const nodeEnv = process.env.NODE_ENV || 'development';
+const mongodbUri = process.env.MONGODB_URI;
 
 export const appConfig = Object.freeze({
   env: nodeEnv,
@@ -32,4 +38,5 @@ export const appConfig = Object.freeze({
   port: parsePort(process.env.PORT),
   clientOrigins: parseAllowedOrigins(process.env.CLIENT_ORIGIN || DEFAULT_CLIENT_ORIGIN),
   jsonBodyLimit: '100kb',
+  mongodbUri,
 });
