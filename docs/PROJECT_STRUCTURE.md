@@ -1,72 +1,58 @@
 # LexSecure Project Structure
 
-LexSecure is organized as a split MERN application with a clear boundary between the API backend and the React frontend. The structure below is intentionally architecture-only: no authentication, routes, controllers, models, database connection, or application logic has been implemented yet.
+LexSecure is organized as a split MERN application with a clear boundary between the API server and the React client. The structure supports incremental secure development: authentication, MongoDB models, and business features are added only when requested.
 
 ## Top-Level Layout
 
 ```text
 LexSecure/
-├── backend/
-│   ├── package.json
-│   └── src/
-│       ├── config/
-│       ├── constants/
-│       ├── controllers/
-│       ├── middleware/
-│       ├── models/
-│       ├── routes/
-│       ├── services/
-│       ├── utils/
-│       └── validators/
-├── docs/
-│   └── PROJECT_STRUCTURE.md
-├── frontend/
-│   ├── package.json
-│   ├── public/
-│   └── src/
-│       ├── api/
-│       ├── assets/
-│       ├── components/
-│       ├── config/
-│       ├── constants/
-│       ├── features/
-│       ├── hooks/
-│       ├── layouts/
-│       ├── pages/
-│       ├── routes/
-│       ├── services/
-│       ├── styles/
-│       └── utils/
-└── package.json
++-- client/
++-- docs/
++-- server/
+|   +-- package.json
+|   +-- .env.example
+|   +-- src/
+|       +-- app.js
+|       +-- server.js
+|       +-- config/
+|       +-- constants/
+|       +-- controllers/
+|       +-- middleware/
+|       +-- models/
+|       +-- routes/
+|       +-- services/
+|       +-- utils/
+|       +-- validators/
++-- package.json
 ```
 
 ## Package Organization
 
-The root `package.json` defines the project as a private npm workspace containing `backend` and `frontend`. This keeps dependency ownership explicit while still allowing shared workspace commands later.
+The root `package.json` defines the project as a private npm workspace containing `server` and `client`. This keeps dependency ownership explicit while still allowing shared workspace commands later.
 
-The backend package is named `@lexsecure/backend` and uses ES Modules through `"type": "module"`. It is reserved for the Express API and MongoDB/Mongoose layer.
+The server package is named `@lexsecure/backend` and uses ES Modules through `"type": "module"`. It is reserved for the Express API and future MongoDB/Mongoose layer.
 
-The frontend package is named `@lexsecure/frontend` and also uses ES Modules. It is reserved for the React client, React Router navigation, Axios API access, and Tailwind CSS styling.
+The client package is reserved for the React client, React Router navigation, Axios API access, and Tailwind CSS styling.
 
 ## Backend Folders
 
-`backend/src/config/` will contain configuration modules such as environment validation, security configuration, database configuration, and trusted runtime settings.
+`server/src/config/` contains configuration modules such as environment loading, CORS configuration, Helmet configuration, future database configuration, and trusted runtime settings.
 
-`backend/src/constants/` will contain fixed application values such as role names, appointment states, document categories, and audit event names.
+`server/src/constants/` will contain fixed application values such as role names, appointment states, document categories, and audit event names.
 
-`backend/src/controllers/` will contain request handlers. Controllers should stay thin and delegate business rules to services.
+`server/src/controllers/` contains request handlers. Controllers should stay thin and delegate business rules to services.
 
-`backend/src/middleware/` will contain Express middleware such as security headers, session checks, CSRF protection, request validation, upload controls, and centralized error handling.
+`server/src/middleware/` contains Express middleware such as security headers, future session checks, CSRF protection, request validation, upload controls, and centralized error handling.
 
-`backend/src/models/` will contain Mongoose schemas and models. Model files should use singular PascalCase names such as `User.model.js`, `LawyerProfile.model.js`, and `Appointment.model.js`.
+`server/src/models/` will contain future Mongoose schemas and models. Model files should use singular PascalCase names such as `User.model.js`, `LawyerProfile.model.js`, and `Appointment.model.js`.
 
-`backend/src/routes/` will contain REST route definitions. Route files should use kebab-case names such as `appointment.routes.js` and `document.routes.js`.
+`server/src/routes/` contains REST route definitions. Route files should use kebab-case names such as `appointment.routes.js` and `document.routes.js`.
 
-`backend/src/services/` will contain business logic such as appointment scheduling, document access policy checks, notification orchestration, and audit logging.
+`server/src/services/` will contain future business logic such as appointment scheduling, document access policy checks, notification orchestration, and audit logging.
 
-`backend/src/utils/` will contain small reusable helpers with no direct Express dependency, such as secure token helpers, date helpers, and file validation helpers.
+`server/src/utils/` contains small reusable helpers with no direct Express dependency, such as async request wrappers, secure token helpers, date helpers, and file validation helpers.
 
-`backend/src/validators/` will contain request validation rules and sanitization schemas. User input validation belongs here before it reaches controllers.
+`server/src/validators/` will contain request validation rules and sanitization schemas. User input validation belongs here before it reaches controllers.
 
 ## Frontend Folders
 

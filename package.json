@@ -4,8 +4,8 @@
   "private": true,
   "description": "Secure Lawyer Appointment and Client Management System coursework project.",
   "workspaces": [
-    "backend",
-    "frontend"
+    "server",
+    "client"
   ],
   "scripts": {
     "install:all": "npm install --workspaces"
