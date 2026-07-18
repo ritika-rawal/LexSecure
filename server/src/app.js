@@ -1,10 +1,12 @@
 import cors from 'cors';
 import express from 'express';
+import session from 'express-session';
 import helmet from 'helmet';
 
 import { appConfig } from './config/app.config.js';
 import { corsOptions } from './config/cors.config.js';
 import { helmetOptions } from './config/helmet.config.js';
+import { createSessionOptions } from './config/session.config.js';
 import { errorMiddleware } from './middleware/error.middleware.js';
 import { notFoundMiddleware } from './middleware/not-found.middleware.js';
 import authRoutes from './routes/auth.routes.js';
@@ -13,6 +15,10 @@ import healthRoutes from './routes/health.routes.js';
 const app = express();
 
 app.disable('x-powered-by');
+
+if (appConfig.isProduction) {
+  app.set('trust proxy', 1);
+}
 
 app.use(helmet(helmetOptions));
 app.use(cors(corsOptions));
@@ -23,6 +29,12 @@ app.use(cors(corsOptions));
  */
 app.use(express.json({ limit: appConfig.jsonBodyLimit }));
 app.use(express.urlencoded({ extended: false, limit: appConfig.jsonBodyLimit }));
+
+/*
+ * Sessions are stored in MongoDB so authentication state is not kept in memory.
+ * Cookies are HTTP-only, which prevents browser JavaScript from reading them.
+ */
+app.use(session(createSessionOptions()));
 
 app.use('/api/auth', authRoutes);
 app.use('/api', healthRoutes);

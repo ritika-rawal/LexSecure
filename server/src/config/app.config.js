@@ -8,7 +8,7 @@ const envFilePath = resolve(currentDirectory, '../../.env');
 dotenv.config({ path: envFilePath });
 
 const DEFAULT_PORT = 5000;
-const DEFAULT_CLIENT_ORIGIN = 'http://localhost:5173';
+const DEFAULT_CLIENT_ORIGIN = 'http://localhost:3000';
 
 const parsePort = (value) => {
   const parsedPort = Number.parseInt(value, 10);
@@ -31,6 +31,7 @@ const parseAllowedOrigins = (value) => {
 
 const nodeEnv = process.env.NODE_ENV || 'development';
 const mongodbUri = process.env.MONGODB_URI;
+const sessionSecret = process.env.SESSION_SECRET;
 
 export const appConfig = Object.freeze({
   env: nodeEnv,
@@ -39,4 +40,6 @@ export const appConfig = Object.freeze({
   clientOrigins: parseAllowedOrigins(process.env.CLIENT_ORIGIN || DEFAULT_CLIENT_ORIGIN),
   jsonBodyLimit: '100kb',
   mongodbUri,
+  sessionSecret,
+  sessionMaxAgeMs: 1000 * 60 * 60,
 });
