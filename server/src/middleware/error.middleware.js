@@ -13,6 +13,10 @@ export const errorMiddleware = (error, req, res, next) => {
     message: statusCode === 500 ? 'Internal server error' : error.message,
   };
 
+  if (error.details) {
+    response.details = error.details;
+  }
+
   if (!appConfig.isProduction) {
     response.stack = error.stack;
   }

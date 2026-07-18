@@ -7,6 +7,7 @@ import { corsOptions } from './config/cors.config.js';
 import { helmetOptions } from './config/helmet.config.js';
 import { errorMiddleware } from './middleware/error.middleware.js';
 import { notFoundMiddleware } from './middleware/not-found.middleware.js';
+import authRoutes from './routes/auth.routes.js';
 import healthRoutes from './routes/health.routes.js';
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: appConfig.jsonBodyLimit }));
 app.use(express.urlencoded({ extended: false, limit: appConfig.jsonBodyLimit }));
 
+app.use('/api/auth', authRoutes);
 app.use('/api', healthRoutes);
 
 app.use(notFoundMiddleware);
