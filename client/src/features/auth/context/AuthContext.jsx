@@ -1,6 +1,7 @@
-import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
 
+import { logoutUser } from '../api/logout.api.js';
 import { getCurrentUser } from '../api/session.api.js';
 import { AUTH_STATUS } from '../constants/authStatus.js';
 import { normalizeUser } from '../utils/normalizeUser.js';
@@ -11,6 +12,8 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [status, setStatus] = useState(AUTH_STATUS.LOADING);
   const [initializationError, setInitializationError] = useState(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const logoutRequestRef = useRef(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -46,14 +49,38 @@ export const AuthProvider = ({ children }) => {
     setInitializationError(null);
   }, []);
 
+  const logout = useCallback(() => {
+    if (logoutRequestRef.current) {
+      return logoutRequestRef.current;
+    }
+
+    setIsLoggingOut(true);
+
+    const logoutRequest = logoutUser()
+      .then(() => {
+        setUser(null);
+        setStatus(AUTH_STATUS.UNAUTHENTICATED);
+        setInitializationError(null);
+      })
+      .finally(() => {
+        setIsLoggingOut(false);
+        logoutRequestRef.current = null;
+      });
+
+    logoutRequestRef.current = logoutRequest;
+    return logoutRequest;
+  }, []);
+
   const value = useMemo(
     () => ({
       initializationError,
+      isLoggingOut,
+      logout,
       setAuthenticatedUser,
       status,
       user,
     }),
-    [initializationError, setAuthenticatedUser, status, user],
+    [initializationError, isLoggingOut, logout, setAuthenticatedUser, status, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

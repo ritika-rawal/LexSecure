@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
   CheckCircle2,
@@ -7,6 +7,7 @@ import {
   EyeOff,
   LoaderCircle,
   LockKeyhole,
+  LogOut,
   Mail,
   ShieldCheck,
 } from 'lucide-react';
@@ -23,9 +24,11 @@ const INITIAL_VALUES = {
 };
 
 const LoginForm = () => {
-  const { setAuthenticatedUser, user } = useAuth();
+  const navigate = useNavigate();
+  const { isLoggingOut, logout, setAuthenticatedUser, user } = useAuth();
   const [values, setValues] = useState(INITIAL_VALUES);
   const [errors, setErrors] = useState({});
+  const [logoutError, setLogoutError] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,6 +76,18 @@ const LoginForm = () => {
     }
   };
 
+  const handleLogout = async () => {
+    setLogoutError('');
+
+    try {
+      await logout();
+      navigate('/login', { replace: true });
+    } catch (error) {
+      const apiError = getAuthApiError(error, 'Logout could not be completed.');
+      setLogoutError(apiError.message);
+    }
+  };
+
   if (user) {
     return (
       <div className="py-5" role="status">
@@ -92,6 +107,37 @@ const LoginForm = () => {
             </div>
           </div>
         </div>
+
+        {logoutError ? (
+          <div
+            className="mt-5 border border-red-300 bg-red-50 p-4 text-sm text-red-800"
+            role="alert"
+          >
+            <div className="flex gap-2">
+              <AlertCircle aria-hidden="true" className="h-5 w-5 shrink-0" />
+              <p>{logoutError}</p>
+            </div>
+          </div>
+        ) : null}
+
+        <button
+          className="mt-6 flex h-12 w-full items-center justify-center gap-2 border border-ink bg-white px-5 font-semibold text-ink transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-forest focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={isLoggingOut}
+          onClick={handleLogout}
+          type="button"
+        >
+          {isLoggingOut ? (
+            <>
+              <LoaderCircle aria-hidden="true" className="h-5 w-5 animate-spin" />
+              Signing out
+            </>
+          ) : (
+            <>
+              <LogOut aria-hidden="true" className="h-5 w-5" />
+              Sign out
+            </>
+          )}
+        </button>
       </div>
     );
   }
