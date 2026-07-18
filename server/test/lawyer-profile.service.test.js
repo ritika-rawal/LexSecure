@@ -93,8 +93,10 @@ test('updates only allowlisted fields and runs document validation on save', asy
   let saveCalled = false;
   const storedProfile = {
     professionalTitle: profileData.professionalTitle,
-    isVisible: false,
-    approvalStatus: 'pending',
+    isVisible: true,
+    approvalStatus: 'approved',
+    reviewedBy: 'previous-admin',
+    reviewedAt: new Date(),
     set(field, value) {
       this[field] = value;
     },
@@ -120,6 +122,8 @@ test('updates only allowlisted fields and runs document validation on save', asy
     assert.equal(updatedProfile.professionalTitle, 'Updated Professional Title');
     assert.equal(updatedProfile.isVisible, false);
     assert.equal(updatedProfile.approvalStatus, 'pending');
+    assert.equal(updatedProfile.reviewedBy, null);
+    assert.equal(updatedProfile.reviewedAt, null);
     assert.equal(Object.hasOwn(updatedProfile, 'user'), false);
     assert.equal(saveCalled, true);
   } finally {

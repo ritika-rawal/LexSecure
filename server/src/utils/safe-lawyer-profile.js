@@ -1,7 +1,7 @@
 export const buildSafeLawyerProfileResponse = (profile) =>
   Object.freeze({
     id: profile.id,
-    userId: profile.user.toString(),
+    userId: (profile.user?._id || profile.user).toString(),
     professionalTitle: profile.professionalTitle,
     biography: profile.biography,
     specializations: profile.specializations,
@@ -11,6 +11,7 @@ export const buildSafeLawyerProfileResponse = (profile) =>
     weeklyAvailability: profile.weeklyAvailability,
     isVisible: profile.isVisible,
     approvalStatus: profile.approvalStatus,
+    reviewedAt: profile.reviewedAt,
     createdAt: profile.createdAt,
     updatedAt: profile.updatedAt,
   });

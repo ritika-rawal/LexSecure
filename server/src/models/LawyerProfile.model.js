@@ -150,6 +150,15 @@ const lawyerProfileSchema = new Schema(
       default: LAWYER_APPROVAL_STATUS.PENDING,
       required: true,
     },
+    reviewedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    reviewedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -162,6 +171,7 @@ const lawyerProfileSchema = new Schema(
  * The compound index supports that access pattern without exposing drafts.
  */
 lawyerProfileSchema.index({ approvalStatus: 1, isVisible: 1 });
+lawyerProfileSchema.index({ approvalStatus: 1, createdAt: 1, _id: 1 });
 lawyerProfileSchema.index({
   specializations: 1,
   approvalStatus: 1,

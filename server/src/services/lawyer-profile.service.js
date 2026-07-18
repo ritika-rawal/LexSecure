@@ -1,3 +1,4 @@
+import { LAWYER_APPROVAL_STATUS } from '../constants/lawyer-profile.js';
 import { LawyerProfile } from '../models/LawyerProfile.model.js';
 
 const createDuplicateProfileError = () => {
@@ -81,6 +82,15 @@ export const updateLawyerProfile = async ({ lawyerId, profileData }) => {
       profile.set(field, profileData[field]);
     }
   }
+
+  /*
+   * Reviewed content cannot remain publicly approved after the Lawyer changes
+   * it. Every edit returns the profile to the Admin review queue.
+   */
+  profile.set('approvalStatus', LAWYER_APPROVAL_STATUS.PENDING);
+  profile.set('isVisible', false);
+  profile.set('reviewedBy', null);
+  profile.set('reviewedAt', null);
 
   await profile.save();
   return profile;

@@ -8,9 +8,9 @@ import {
   EyeOff,
   LoaderCircle,
   LockKeyhole,
-  Mail,
+  Mail, 
   UserRound,
-} from 'lucide-react';
+} from 'lucide-react';  
 
 import { registerUser } from '../api/registration.api.js';
 import { getAuthApiError } from '../utils/apiError.js';

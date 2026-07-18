@@ -30,6 +30,8 @@ test('applies secure visibility and approval defaults', () => {
 
   assert.equal(profile.isVisible, false);
   assert.equal(profile.approvalStatus, LAWYER_APPROVAL_STATUS.PENDING);
+  assert.equal(profile.reviewedBy, null);
+  assert.equal(profile.reviewedAt, null);
   assert.equal(profile.validateSync(), undefined);
 });
 
