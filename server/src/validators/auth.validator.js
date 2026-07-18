@@ -42,3 +42,20 @@ export const registerValidator = [
     .isIn(SELF_REGISTRATION_ROLE_VALUES)
     .withMessage('Role must be either client or lawyer.'),
 ];
+
+export const loginValidator = [
+  body('email')
+    .isString()
+    .withMessage('Email must be text.')
+    .trim()
+    .isEmail()
+    .withMessage('Email must be a valid email address.')
+    .customSanitizer((email) => email.toLowerCase())
+    .isLength({ max: 254 })
+    .withMessage('Email must not exceed 254 characters.'),
+  body('password')
+    .isString()
+    .withMessage('Password must be text.')
+    .isLength({ min: 1, max: PASSWORD_MAX_LENGTH })
+    .withMessage(`Password must not exceed ${PASSWORD_MAX_LENGTH} characters.`),
+];
