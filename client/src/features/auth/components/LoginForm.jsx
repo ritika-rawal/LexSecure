@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 
 import { loginUser } from '../api/login.api.js';
+import { useAuth } from '../hooks/useAuth.js';
 import { getAuthApiError } from '../utils/apiError.js';
 import { validateLogin } from '../validation/login.validation.js';
 import FieldError from './FieldError.jsx';
@@ -22,10 +23,10 @@ const INITIAL_VALUES = {
 };
 
 const LoginForm = () => {
+  const { setAuthenticatedUser, user } = useAuth();
   const [values, setValues] = useState(INITIAL_VALUES);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
-  const [authenticatedUser, setAuthenticatedUser] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -51,7 +52,6 @@ const LoginForm = () => {
     const validationErrors = validateLogin(values);
     setErrors(validationErrors);
     setSubmitError('');
-    setAuthenticatedUser(null);
 
     if (Object.keys(validationErrors).length > 0) {
       return;
@@ -73,21 +73,21 @@ const LoginForm = () => {
     }
   };
 
-  if (authenticatedUser) {
+  if (user) {
     return (
       <div className="py-5" role="status">
         <span className="mb-6 grid h-14 w-14 place-items-center bg-emerald-100 text-forest">
           <ShieldCheck aria-hidden="true" className="h-8 w-8" />
         </span>
         <p className="mb-2 text-sm font-semibold uppercase text-forest">Session established</p>
-        <h1 className="text-3xl font-bold text-ink">Welcome, {authenticatedUser.fullName}</h1>
+        <h1 className="text-3xl font-bold text-ink">Welcome, {user.fullName}</h1>
         <div className="mt-6 border border-emerald-300 bg-emerald-50 p-4 text-emerald-900">
           <div className="flex gap-3">
             <CheckCircle2 aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0" />
             <div>
               <p className="font-semibold">You are securely signed in</p>
               <p className="mt-1 text-sm">
-                Authenticated as {authenticatedUser.email} ({authenticatedUser.role}).
+                Authenticated as {user.email} ({user.role}).
               </p>
             </div>
           </div>
