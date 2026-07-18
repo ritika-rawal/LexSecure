@@ -11,6 +11,7 @@ import { errorMiddleware } from './middleware/error.middleware.js';
 import { notFoundMiddleware } from './middleware/not-found.middleware.js';
 import authRoutes from './routes/auth.routes.js';
 import healthRoutes from './routes/health.routes.js';
+import lawyerProfileRoutes from './routes/lawyer-profile.routes.js';
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use(express.urlencoded({ extended: false, limit: appConfig.jsonBodyLimit }))
 app.use(session(createSessionOptions()));
 
 app.use('/api/auth', authRoutes);
+app.use('/api/lawyer-profiles', lawyerProfileRoutes);
 app.use('/api', healthRoutes);
 
 app.use(notFoundMiddleware);

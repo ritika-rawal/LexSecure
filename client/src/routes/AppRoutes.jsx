@@ -11,6 +11,7 @@ import LoginPage from '../features/auth/pages/LoginPage.jsx';
 import RegisterPage from '../features/auth/pages/RegisterPage.jsx';
 import UnauthorizedPage from '../features/auth/pages/UnauthorizedPage.jsx';
 import { getRoleHomePath } from '../features/auth/utils/roleHomePath.js';
+import LawyerProfilePage from '../features/lawyers/pages/LawyerProfilePage.jsx';
 
 const AppRoutes = () => {
   const { status, user } = useAuth();
@@ -42,6 +43,7 @@ const AppRoutes = () => {
       </Route>
       <Route element={<ProtectedRoute allowedRoles={[USER_ROLES.LAWYER]} />}>
         <Route path="/lawyer/account" element={<AccountPage />} />
+        <Route path="/lawyer/profile" element={<LawyerProfilePage />} />
       </Route>
       <Route element={<ProtectedRoute allowedRoles={USER_ROLE_VALUES} />}>
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
