@@ -2,12 +2,18 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { LoaderCircle, Scale } from 'lucide-react';
 
 import { AUTH_STATUS } from '../features/auth/constants/authStatus.js';
+import { USER_ROLES, USER_ROLE_VALUES } from '../features/auth/constants/userRoles.js';
+import ProtectedRoute from '../features/auth/components/ProtectedRoute.jsx';
+import PublicOnlyRoute from '../features/auth/components/PublicOnlyRoute.jsx';
 import { useAuth } from '../features/auth/hooks/useAuth.js';
+import AccountPage from '../features/auth/pages/AccountPage.jsx';
 import LoginPage from '../features/auth/pages/LoginPage.jsx';
 import RegisterPage from '../features/auth/pages/RegisterPage.jsx';
+import UnauthorizedPage from '../features/auth/pages/UnauthorizedPage.jsx';
+import { getRoleHomePath } from '../features/auth/utils/roleHomePath.js';
 
 const AppRoutes = () => {
-  const { status } = useAuth();
+  const { status, user } = useAuth();
 
   if (status === AUTH_STATUS.LOADING) {
     return (
@@ -31,9 +37,27 @@ const AppRoutes = () => {
 
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route element={<PublicOnlyRoute />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={[USER_ROLES.CLIENT]} />}>
+        <Route path="/client/account" element={<AccountPage />} />
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={[USER_ROLES.LAWYER]} />}>
+        <Route path="/lawyer/account" element={<AccountPage />} />
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={USER_ROLE_VALUES} />}>
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
+      </Route>
+
+      <Route
+        path="*"
+        element={<Navigate replace to={user ? getRoleHomePath(user.role) : '/login'} />}
+      />
     </Routes>
   );
 };

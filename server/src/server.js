@@ -4,16 +4,22 @@ import { connectDatabase, disconnectDatabase } from './config/database.config.js
 
 let server;
 
+const listenForRequests = () =>
+  new Promise((resolve, reject) => {
+    server = app.listen(appConfig.port);
+    server.once('listening', resolve);
+    server.once('error', reject);
+  });
+
 const startServer = async () => {
   try {
     await connectDatabase();
-
-    server = app.listen(appConfig.port, () => {
-      console.log(`LexSecure API listening on port ${appConfig.port}`);
-    });
+    await listenForRequests();
+    console.log(`LexSecure API listening on port ${appConfig.port}`);
   } catch (error) {
     console.error('LexSecure API startup failed.');
     console.error(error.message);
+    await disconnectDatabase();
     process.exit(1);
   }
 };

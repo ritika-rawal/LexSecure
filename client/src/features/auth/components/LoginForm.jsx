@@ -2,19 +2,17 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
-  CheckCircle2,
   Eye,
   EyeOff,
   LoaderCircle,
   LockKeyhole,
-  LogOut,
   Mail,
-  ShieldCheck,
 } from 'lucide-react';
 
 import { loginUser } from '../api/login.api.js';
 import { useAuth } from '../hooks/useAuth.js';
 import { getAuthApiError } from '../utils/apiError.js';
+import { getRoleHomePath } from '../utils/roleHomePath.js';
 import { validateLogin } from '../validation/login.validation.js';
 import FieldError from './FieldError.jsx';
 
@@ -25,10 +23,9 @@ const INITIAL_VALUES = {
 
 const LoginForm = () => {
   const navigate = useNavigate();
-  const { isLoggingOut, logout, setAuthenticatedUser, user } = useAuth();
+  const { setAuthenticatedUser } = useAuth();
   const [values, setValues] = useState(INITIAL_VALUES);
   const [errors, setErrors] = useState({});
-  const [logoutError, setLogoutError] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,6 +63,7 @@ const LoginForm = () => {
       const response = await loginUser(values);
       setAuthenticatedUser(response.data.user);
       setValues(INITIAL_VALUES);
+      navigate(getRoleHomePath(response.data.user.role), { replace: true });
     } catch (error) {
       const apiError = getAuthApiError(error, 'Login could not be completed.');
       setSubmitError(apiError.message);
@@ -75,72 +73,6 @@ const LoginForm = () => {
       setIsSubmitting(false);
     }
   };
-
-  const handleLogout = async () => {
-    setLogoutError('');
-
-    try {
-      await logout();
-      navigate('/login', { replace: true });
-    } catch (error) {
-      const apiError = getAuthApiError(error, 'Logout could not be completed.');
-      setLogoutError(apiError.message);
-    }
-  };
-
-  if (user) {
-    return (
-      <div className="py-5" role="status">
-        <span className="mb-6 grid h-14 w-14 place-items-center bg-emerald-100 text-forest">
-          <ShieldCheck aria-hidden="true" className="h-8 w-8" />
-        </span>
-        <p className="mb-2 text-sm font-semibold uppercase text-forest">Session established</p>
-        <h1 className="text-3xl font-bold text-ink">Welcome, {user.fullName}</h1>
-        <div className="mt-6 border border-emerald-300 bg-emerald-50 p-4 text-emerald-900">
-          <div className="flex gap-3">
-            <CheckCircle2 aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0" />
-            <div>
-              <p className="font-semibold">You are securely signed in</p>
-              <p className="mt-1 text-sm">
-                Authenticated as {user.email} ({user.role}).
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {logoutError ? (
-          <div
-            className="mt-5 border border-red-300 bg-red-50 p-4 text-sm text-red-800"
-            role="alert"
-          >
-            <div className="flex gap-2">
-              <AlertCircle aria-hidden="true" className="h-5 w-5 shrink-0" />
-              <p>{logoutError}</p>
-            </div>
-          </div>
-        ) : null}
-
-        <button
-          className="mt-6 flex h-12 w-full items-center justify-center gap-2 border border-ink bg-white px-5 font-semibold text-ink transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-forest focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={isLoggingOut}
-          onClick={handleLogout}
-          type="button"
-        >
-          {isLoggingOut ? (
-            <>
-              <LoaderCircle aria-hidden="true" className="h-5 w-5 animate-spin" />
-              Signing out
-            </>
-          ) : (
-            <>
-              <LogOut aria-hidden="true" className="h-5 w-5" />
-              Sign out
-            </>
-          )}
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div>

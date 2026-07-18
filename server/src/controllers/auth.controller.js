@@ -1,54 +1,12 @@
 import { SESSION_COOKIE_NAME, sessionCookieOptions } from '../config/session.config.js';
 import { User } from '../models/User.model.js';
-import { hashPassword, verifyPassword } from '../utils/password.js';
-
-const buildSafeUserResponse = (user) => ({
-  id: user.id,
-  fullName: user.fullName,
-  email: user.email,
-  role: user.role,
-  isActive: user.isActive,
-  isEmailVerified: user.isEmailVerified,
-  mfaEnabled: user.mfaEnabled,
-  createdAt: user.createdAt,
-  updatedAt: user.updatedAt,
-});
-
-const regenerateSession = (req) =>
-  new Promise((resolve, reject) => {
-    req.session.regenerate((error) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-
-      resolve();
-    });
-  });
-
-const saveSession = (req) =>
-  new Promise((resolve, reject) => {
-    req.session.save((error) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-
-      resolve();
-    });
-  });
-
-const destroySession = (req) =>
-  new Promise((resolve, reject) => {
-    req.session.destroy((error) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-
-      resolve();
-    });
-  });
+import {
+  DUMMY_PASSWORD_HASH,
+  hashPassword,
+  verifyPassword,
+} from '../utils/password.js';
+import { buildSafeUserResponse } from '../utils/safe-user.js';
+import { destroySession, regenerateSession, saveSession } from '../utils/session.js';
 
 const createInvalidCredentialsError = () => {
   const error = new Error('Invalid email or password.');
@@ -103,8 +61,10 @@ export const loginUser = async (req, res) => {
   const normalizedEmail = email.toLowerCase();
 
   const user = await User.findOne({ email: normalizedEmail }).select('+passwordHash');
+  const passwordHash = user?.passwordHash || DUMMY_PASSWORD_HASH;
+  const passwordMatches = await verifyPassword(password, passwordHash);
 
-  if (!user) {
+  if (!user || !passwordMatches) {
     throw createInvalidCredentialsError();
   }
 
@@ -112,12 +72,6 @@ export const loginUser = async (req, res) => {
     const error = new Error('This account is disabled.');
     error.statusCode = 403;
     throw error;
-  }
-
-  const passwordMatches = await verifyPassword(password, user.passwordHash);
-
-  if (!passwordMatches) {
-    throw createInvalidCredentialsError();
   }
 
   await regenerateSession(req);
@@ -148,26 +102,10 @@ export const logoutUser = async (req, res) => {
 };
 
 export const getCurrentUser = async (req, res) => {
-  if (!req.session.user?.id) {
-    const error = new Error('Authentication required.');
-    error.statusCode = 401;
-    throw error;
-  }
-
-  const user = await User.findById(req.session.user.id);
-
-  if (!user || !user.isActive) {
-    await destroySession(req);
-
-    const error = new Error('Authentication required.');
-    error.statusCode = 401;
-    throw error;
-  }
-
   res.status(200).json({
     status: 'success',
     data: {
-      user: buildSafeUserResponse(user),
+      user: req.user,
     },
   });
 };
