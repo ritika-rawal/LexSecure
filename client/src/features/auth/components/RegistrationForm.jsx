@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import { Link } from 'react-router-dom';
 import {
   AlertCircle,
   BriefcaseBusiness,
@@ -13,7 +13,9 @@ import {
 } from 'lucide-react';
 
 import { registerUser } from '../api/registration.api.js';
+import { getAuthApiError } from '../utils/apiError.js';
 import { validateRegistration } from '../validation/registration.validation.js';
+import FieldError from './FieldError.jsx';
 
 const INITIAL_VALUES = {
   fullName: '',
@@ -22,44 +24,6 @@ const INITIAL_VALUES = {
   confirmPassword: '',
   role: 'client',
 };
-
-const getApiError = (error) => {
-  if (!axios.isAxiosError(error)) {
-    return { message: 'Something went wrong. Please try again.', fieldErrors: {} };
-  }
-
-  if (!error.response) {
-    return {
-      message: 'Unable to reach LexSecure. Check that the backend is running.',
-      fieldErrors: {},
-    };
-  }
-
-  const details = Array.isArray(error.response.data?.details)
-    ? error.response.data.details
-    : [];
-
-  const fieldErrors = details.reduce((errors, detail) => {
-    if (typeof detail.field === 'string' && typeof detail.message === 'string') {
-      errors[detail.field] = detail.message;
-    }
-
-    return errors;
-  }, {});
-
-  return {
-    message: error.response.data?.message || 'Registration could not be completed.',
-    fieldErrors,
-  };
-};
-
-const FieldError = ({ id, message }) =>
-  message ? (
-    <p id={id} className="mt-1.5 flex items-center gap-1.5 text-sm text-red-700">
-      <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0" />
-      {message}
-    </p>
-  ) : null;
 
 const RegistrationForm = () => {
   const [values, setValues] = useState(INITIAL_VALUES);
@@ -104,7 +68,7 @@ const RegistrationForm = () => {
       setRegisteredUser(response.data.user);
       setValues(INITIAL_VALUES);
     } catch (error) {
-      const apiError = getApiError(error);
+      const apiError = getAuthApiError(error, 'Registration could not be completed.');
       setSubmitError(apiError.message);
       setErrors((currentErrors) => ({ ...currentErrors, ...apiError.fieldErrors }));
     } finally {
@@ -328,6 +292,13 @@ const RegistrationForm = () => {
           )}
         </button>
       </form>
+
+      <p className="mt-7 border-t border-line pt-6 text-center text-sm text-gray-600">
+        Already registered?{' '}
+        <Link className="font-semibold text-forest underline-offset-4 hover:underline" to="/login">
+          Sign in
+        </Link>
+      </p>
     </div>
   );
 };
