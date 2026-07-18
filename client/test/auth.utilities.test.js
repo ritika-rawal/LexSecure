@@ -19,9 +19,10 @@ test('normalizes only safe user fields', () => {
   assert.equal(Object.isFrozen(user), true);
 });
 
-test('maps client and lawyer roles to separate protected routes', () => {
+test('maps each role to its protected home route', () => {
   assert.equal(getRoleHomePath(USER_ROLES.CLIENT), '/client/account');
   assert.equal(getRoleHomePath(USER_ROLES.LAWYER), '/lawyer/account');
+  assert.equal(getRoleHomePath(USER_ROLES.ADMIN), '/admin/lawyer-profiles');
 });
 
 test('rejects malformed login and admin self-registration', () => {
