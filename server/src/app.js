@@ -35,6 +35,12 @@ app.use(express.json({ limit: appConfig.jsonBodyLimit }));
 app.use(express.urlencoded({ extended: false, limit: appConfig.jsonBodyLimit }));
 app.use(session(createSessionOptions()));
 
+/*
+ * Sessions are stored in MongoDB so authentication state is not kept in memory.
+ * Cookies are HTTP-only, which prevents browser JavaScript from reading them.
+ */
+app.use(session(createSessionOptions()));
+
 app.use('/api/auth', authRoutes);
 app.use('/api/admin/lawyer-profiles', adminLawyerProfileRoutes);
 app.use('/api/appointments', appointmentRoutes);
