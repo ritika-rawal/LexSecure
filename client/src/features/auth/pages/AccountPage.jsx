@@ -4,6 +4,7 @@ import {
   ChevronRight,
   Mail,
   Inbox,
+  CalendarRange,
   Scale,
   Search,
   ShieldCheck,
@@ -38,9 +39,24 @@ const AccountPage = () => {
         <p className="mb-2 text-sm font-semibold uppercase text-forest">{formatRole(user.role)} account</p>
         <h1 className="mb-10 text-3xl font-bold sm:text-4xl">Welcome, {user.fullName}</h1>
         {user.role === USER_ROLES.LAWYER ? (
-          <div className="mb-8 grid gap-3 md:grid-cols-2">
+          <div className="mb-8 grid gap-3 md:grid-cols-3">
             <Link
-              className="flex items-center justify-between gap-4 border-l-4 border-forest bg-white px-5 py-5 hover:bg-emerald-50 sm:px-7"
+              className="flex items-center justify-between gap-4 border-l-4 border-forest bg-white px-5 py-5 hover:bg-emerald-50"
+              to="/lawyer/schedule"
+            >
+              <span className="flex items-center gap-3">
+                <CalendarRange aria-hidden="true" className="h-5 w-5 text-forest" />
+                <span>
+                  <span className="block font-bold">My schedule</span>
+                  <span className="mt-1 block text-sm text-gray-600">
+                    View consultation history and status
+                  </span>
+                </span>
+              </span>
+              <ChevronRight aria-hidden="true" className="h-5 w-5 text-gray-500" />
+            </Link>
+            <Link
+              className="flex items-center justify-between gap-4 border-l-4 border-forest bg-white px-5 py-5 hover:bg-emerald-50"
               to="/lawyer/appointments"
             >
               <span className="flex items-center gap-3">
@@ -55,7 +71,7 @@ const AccountPage = () => {
               <ChevronRight aria-hidden="true" className="h-5 w-5 text-gray-500" />
             </Link>
             <Link
-              className="flex items-center justify-between gap-4 border-l-4 border-forest bg-white px-5 py-5 hover:bg-emerald-50 sm:px-7"
+              className="flex items-center justify-between gap-4 border-l-4 border-forest bg-white px-5 py-5 hover:bg-emerald-50"
               to="/lawyer/profile"
             >
               <span className="flex items-center gap-3">
@@ -72,21 +88,38 @@ const AccountPage = () => {
           </div>
         ) : null}
         {user.role === USER_ROLES.CLIENT ? (
-          <Link
-            className="mb-8 flex items-center justify-between gap-4 border-l-4 border-forest bg-white px-5 py-5 hover:bg-emerald-50 sm:px-7"
-            to="/lawyers"
-          >
-            <span className="flex items-center gap-3">
-              <Search aria-hidden="true" className="h-5 w-5 text-forest" />
-              <span>
-                <span className="block font-bold">Find a lawyer</span>
-                <span className="mt-1 block text-sm text-gray-600">
-                  Browse approved lawyers and consultation availability
+          <div className="mb-8 grid gap-3 md:grid-cols-2">
+            <Link
+              className="flex items-center justify-between gap-4 border-l-4 border-forest bg-white px-5 py-5 hover:bg-emerald-50 sm:px-7"
+              to="/client/appointments"
+            >
+              <span className="flex items-center gap-3">
+                <CalendarRange aria-hidden="true" className="h-5 w-5 text-forest" />
+                <span>
+                  <span className="block font-bold">My appointments</span>
+                  <span className="mt-1 block text-sm text-gray-600">
+                    Track consultation requests and status
+                  </span>
                 </span>
               </span>
-            </span>
-            <ChevronRight aria-hidden="true" className="h-5 w-5 text-gray-500" />
-          </Link>
+              <ChevronRight aria-hidden="true" className="h-5 w-5 text-gray-500" />
+            </Link>
+            <Link
+              className="flex items-center justify-between gap-4 border-l-4 border-forest bg-white px-5 py-5 hover:bg-emerald-50 sm:px-7"
+              to="/lawyers"
+            >
+              <span className="flex items-center gap-3">
+                <Search aria-hidden="true" className="h-5 w-5 text-forest" />
+                <span>
+                  <span className="block font-bold">Find a lawyer</span>
+                  <span className="mt-1 block text-sm text-gray-600">
+                    Browse approved lawyers and consultation availability
+                  </span>
+                </span>
+              </span>
+              <ChevronRight aria-hidden="true" className="h-5 w-5 text-gray-500" />
+            </Link>
+          </div>
         ) : null}
         <section className="border-t border-line bg-white" aria-labelledby="account-heading">
           <div className="border-b border-line px-5 py-5 sm:px-7">

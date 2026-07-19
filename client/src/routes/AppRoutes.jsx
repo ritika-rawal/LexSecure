@@ -16,6 +16,7 @@ import LawyerDirectoryPage from '../features/lawyers/pages/LawyerDirectoryPage.j
 import PublicLawyerProfilePage from '../features/lawyers/pages/PublicLawyerProfilePage.jsx';
 import AppointmentBookingPage from '../features/appointments/pages/AppointmentBookingPage.jsx';
 import LawyerAppointmentInboxPage from '../features/appointments/pages/LawyerAppointmentInboxPage.jsx';
+import AppointmentDashboardPage from '../features/appointments/pages/AppointmentDashboardPage.jsx';
 import LawyerReviewPage from '../features/admin/pages/LawyerReviewPage.jsx';
 
 const AppRoutes = () => {
@@ -45,6 +46,7 @@ const AppRoutes = () => {
       </Route>
       <Route element={<ProtectedRoute allowedRoles={[USER_ROLES.CLIENT]} />}>
         <Route path="/client/account" element={<AccountPage />} />
+        <Route path="/client/appointments" element={<AppointmentDashboardPage />} />
         <Route path="/lawyers" element={<LawyerDirectoryPage />} />
         <Route path="/lawyers/:profileId" element={<PublicLawyerProfilePage />} />
         <Route path="/lawyers/:profileId/book" element={<AppointmentBookingPage />} />
@@ -53,6 +55,7 @@ const AppRoutes = () => {
         <Route path="/lawyer/account" element={<AccountPage />} />
         <Route path="/lawyer/profile" element={<LawyerProfilePage />} />
         <Route path="/lawyer/appointments" element={<LawyerAppointmentInboxPage />} />
+        <Route path="/lawyer/schedule" element={<AppointmentDashboardPage />} />
       </Route>
       <Route element={<ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]} />}>
         <Route path="/admin/lawyer-profiles" element={<LawyerReviewPage />} />

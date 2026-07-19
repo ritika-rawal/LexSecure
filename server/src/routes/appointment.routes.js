@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { USER_ROLES } from '../constants/user-roles.js';
 import {
   createAppointment,
+  listMyAppointments,
   listPendingLawyerAppointments,
   reviewAppointment,
 } from '../controllers/appointment.controller.js';
@@ -14,6 +15,7 @@ import { validateRequest } from '../middleware/validate-request.middleware.js';
 import { asyncHandler } from '../utils/async-handler.js';
 import {
   createAppointmentValidator,
+  listMyAppointmentsValidator,
   listLawyerAppointmentsValidator,
   reviewAppointmentValidator,
 } from '../validators/appointment.validator.js';
@@ -36,6 +38,15 @@ router.get(
   listLawyerAppointmentsValidator,
   validateRequest,
   asyncHandler(listPendingLawyerAppointments),
+);
+
+router.get(
+  '/me',
+  asyncHandler(requireAuthentication),
+  authorizeRoles(USER_ROLES.CLIENT, USER_ROLES.LAWYER),
+  listMyAppointmentsValidator,
+  validateRequest,
+  asyncHandler(listMyAppointments),
 );
 
 router.patch(

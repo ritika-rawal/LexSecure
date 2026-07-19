@@ -2,6 +2,7 @@ import { body, param, query } from 'express-validator';
 
 import {
   APPOINTMENT_STATUS,
+  APPOINTMENT_STATUS_VALUES,
   CONSULTATION_TYPE_VALUES,
 } from '../constants/appointment.js';
 import { TIME_24_HOUR_PATTERN } from '../utils/availability.js';
@@ -117,4 +118,38 @@ export const reviewAppointmentValidator = [
       APPOINTMENT_STATUS.REJECTED,
     ])
     .withMessage('Decision must be approved or rejected.'),
+];
+
+const ALLOWED_DASHBOARD_QUERY_FIELDS = new Set(['status', 'page', 'limit']);
+
+export const listMyAppointmentsValidator = [
+  query().custom((queryParameters) => {
+    const containsOnlyAllowedFields = Object.keys(queryParameters).every((key) =>
+      ALLOWED_DASHBOARD_QUERY_FIELDS.has(key),
+    );
+
+    if (!containsOnlyAllowedFields) {
+      throw new Error('Request contains unsupported query parameters.');
+    }
+
+    return true;
+  }),
+  query('status')
+    .optional()
+    .isString()
+    .withMessage('Status must be text.')
+    .trim()
+    .toLowerCase()
+    .isIn(APPOINTMENT_STATUS_VALUES)
+    .withMessage('Appointment status is invalid.'),
+  query('page')
+    .optional()
+    .isInt({ min: 1, max: 10_000 })
+    .withMessage('Page must be between 1 and 10000.')
+    .toInt(),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 50 })
+    .withMessage('Limit must be between 1 and 50.')
+    .toInt(),
 ];

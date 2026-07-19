@@ -227,3 +227,41 @@ export const reviewAppointment = async ({ lawyerId, appointmentId, decision }) =
 
   throw createInvalidDecisionError('Past appointments cannot be approved.');
 };
+
+export const listAppointmentsForUser = async ({
+  userId,
+  userRole,
+  status,
+  page,
+  limit,
+}) => {
+  const ownershipField =
+    userRole === USER_ROLES.CLIENT ? 'client' : 'lawyer';
+  const participantPath =
+    userRole === USER_ROLES.CLIENT ? 'lawyer' : 'client';
+  const filter = {
+    [ownershipField]: userId,
+    ...(status ? { status } : {}),
+  };
+  const skip = (page - 1) * limit;
+  const [appointments, totalItems] = await Promise.all([
+    Appointment.find(filter)
+      .select('+legalIssueSummary')
+      .sort({ startsAt: -1, _id: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate(participantPath, 'fullName')
+      .exec(),
+    Appointment.countDocuments(filter),
+  ]);
+
+  return {
+    appointments,
+    pagination: {
+      page,
+      limit,
+      totalItems,
+      totalPages: Math.ceil(totalItems / limit),
+    },
+  };
+};

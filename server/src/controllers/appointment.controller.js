@@ -1,10 +1,12 @@
 import {
   createAppointment as createAppointmentService,
+  listAppointmentsForUser as listAppointmentsForUserService,
   listPendingLawyerAppointments as listPendingLawyerAppointmentsService,
   reviewAppointment as reviewAppointmentService,
 } from '../services/appointment.service.js';
 import {
   buildSafeAppointmentConfirmation,
+  buildSafeAppointmentDashboardResponse,
   buildSafeLawyerAppointmentResponse,
 } from '../utils/safe-appointment.js';
 
@@ -54,6 +56,25 @@ export const reviewAppointment = async (req, res) => {
     message: `Appointment ${req.body.decision} successfully.`,
     data: {
       appointment: buildSafeLawyerAppointmentResponse(appointment),
+    },
+  });
+};
+
+export const listMyAppointments = async (req, res) => {
+  const result = await listAppointmentsForUserService({
+    userId: req.user.id,
+    userRole: req.user.role,
+    status: req.query.status,
+    page: req.query.page || DEFAULT_PAGE,
+    limit: req.query.limit || DEFAULT_LIMIT,
+  });
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      appointments: result.appointments.map((appointment) =>
+        buildSafeAppointmentDashboardResponse(appointment, req.user.role)),
+      pagination: result.pagination,
     },
   });
 };
