@@ -7,19 +7,19 @@
 | Sprint | Sprint 3 - Documents, Communication, and Administration |
 | Goal | Deliver secure collaboration between clients and lawyers |
 | Functional status | In progress |
-| Current increment | Encrypted legal-document upload backend |
+| Current increment | Encrypted legal-document workflow |
 | Security status | Design review complete for this increment; dynamic audit remains |
 | Audit type | Continuous white-box review |
 
-Sprint 3 has started with the confidential-document backend. An authenticated
-client can upload an approved document type to one of their active
-appointments. The appointment's client and assigned lawyer can list and
-download those documents. Stored files are encrypted and kept outside the
-public frontend tree.
+Sprint 3 has started with the confidential-document workflow. An authenticated
+client can upload an approved document type from an active appointment. The
+appointment's client and assigned lawyer can list and download those documents
+from their role-aware dashboards. Stored files are encrypted and kept outside
+the public frontend tree.
 
 This report is intentionally marked in progress. Messaging, audit logging,
-administration improvements, the document frontend, and dynamic security
-evidence are not yet complete.
+administration improvements, security hardening, and dynamic security evidence
+are not yet complete.
 
 ## 2. Delivered Functionality
 
@@ -36,6 +36,11 @@ evidence are not yet complete.
 - Safe response mapping that excludes storage names, hashes, IVs, and tags.
 - Paginated document metadata listing.
 - Attachment downloads with browser caching disabled.
+- Lazy-loaded document panels in client and lawyer appointment dashboards.
+- Client-side filename, type, empty-file, and five-megabyte validation.
+- Upload progress with accessible success and failure feedback.
+- Authenticated browser downloads using temporary object URLs.
+- Document empty, loading, retry, pagination, and download states.
 
 ## 3. API Surface
 
@@ -88,6 +93,11 @@ The upload request uses `multipart/form-data` with exactly one file in the
 | `server/.env.example` | Documents the required encryption-key variable |
 | `.gitignore` | Excludes uploaded ciphertext while allowing audit documents |
 | `server/package.json` and `package-lock.json` | Add Multer and file-signature detection dependencies |
+| `client/src/features/documents/constants/document.js` | Shared client-side file constraints and pagination size |
+| `client/src/features/documents/utils/document.js` | File validation and metadata formatting |
+| `client/src/features/documents/api/document.api.js` | Credentialed upload, list, and blob-download requests |
+| `client/src/features/documents/components/AppointmentDocuments.jsx` | Role-aware upload, list, pagination, and download interface |
+| `client/src/features/appointments/components/DashboardAppointmentItem.jsx` | Integrates documents into each participant's appointment view |
 
 ## 6. Known Gaps and Audit Targets
 
@@ -144,15 +154,14 @@ Only synthetic legal documents should be used during testing.
 
 ## 9. Sprint 3 Work Remaining
 
-1. Build the authenticated document upload, list, and download frontend.
-2. Implement client-lawyer messaging with strict conversation ownership.
-3. Implement append-only security audit logging.
-4. Build the administrator audit-log view.
-5. Add approved coursework features such as reviews only after core
+1. Implement client-lawyer messaging with strict conversation ownership.
+2. Implement append-only security audit logging.
+3. Build the administrator audit-log view.
+4. Add approved coursework features such as reviews only after core
    confidential workflows are secure.
-6. Perform the Sprint 3 security-hardening pass.
-7. Execute the dynamic audit matrix and attach evidence.
-8. Convert this report from in-progress to retrospective complete.
+5. Perform the Sprint 3 security-hardening pass.
+6. Execute the dynamic audit matrix and attach evidence.
+7. Convert this report from in-progress to retrospective complete.
 
 ## 10. Current Assessment
 

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 
 import { getAuthApiError } from '../../auth/utils/apiError.js';
+import AppointmentDocuments from '../../documents/components/AppointmentDocuments.jsx';
 import { cancelAppointment } from '../api/appointmentDashboard.api.js';
 import RescheduleAppointmentForm from './RescheduleAppointmentForm.jsx';
 import {
@@ -179,6 +180,14 @@ const DashboardAppointmentItem = ({ appointment, onChanged }) => {
               </p>
             ) : null}
           </div>
+
+          <AppointmentDocuments
+            appointmentId={appointment.id}
+            canUpload={
+              viewerIsClient
+              && ['pending', 'approved'].includes(appointment.status)
+            }
+          />
 
           {canCancel || canReschedule ? (
             <div className="border-t border-line px-5 py-4 sm:px-6">
