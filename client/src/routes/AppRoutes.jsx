@@ -12,6 +12,8 @@ import RegisterPage from '../features/auth/pages/RegisterPage.jsx';
 import UnauthorizedPage from '../features/auth/pages/UnauthorizedPage.jsx';
 import { getRoleHomePath } from '../features/auth/utils/roleHomePath.js';
 import LawyerProfilePage from '../features/lawyers/pages/LawyerProfilePage.jsx';
+import LawyerDirectoryPage from '../features/lawyers/pages/LawyerDirectoryPage.jsx';
+import PublicLawyerProfilePage from '../features/lawyers/pages/PublicLawyerProfilePage.jsx';
 import LawyerReviewPage from '../features/admin/pages/LawyerReviewPage.jsx';
 
 const AppRoutes = () => {
@@ -41,6 +43,8 @@ const AppRoutes = () => {
       </Route>
       <Route element={<ProtectedRoute allowedRoles={[USER_ROLES.CLIENT]} />}>
         <Route path="/client/account" element={<AccountPage />} />
+        <Route path="/lawyers" element={<LawyerDirectoryPage />} />
+        <Route path="/lawyers/:profileId" element={<PublicLawyerProfilePage />} />
       </Route>
       <Route element={<ProtectedRoute allowedRoles={[USER_ROLES.LAWYER]} />}>
         <Route path="/lawyer/account" element={<AccountPage />} />

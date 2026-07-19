@@ -7,6 +7,10 @@ import {
   updateCurrentLawyerProfile,
 } from '../controllers/lawyer-profile.controller.js';
 import {
+  getPublicLawyerProfile,
+  listPublicLawyerProfiles,
+} from '../controllers/public-lawyer-profile.controller.js';
+import {
   authorizeRoles,
   requireAuthentication,
 } from '../middleware/auth.middleware.js';
@@ -16,8 +20,19 @@ import {
   createLawyerProfileValidator,
   updateLawyerProfileValidator,
 } from '../validators/lawyer-profile.validator.js';
+import {
+  getPublicLawyerProfileValidator,
+  listPublicLawyerProfilesValidator,
+} from '../validators/public-lawyer-profile.validator.js';
 
 const router = Router();
+
+router.get(
+  '/',
+  listPublicLawyerProfilesValidator,
+  validateRequest,
+  asyncHandler(listPublicLawyerProfiles),
+);
 
 router.get(
   '/me',
@@ -42,6 +57,13 @@ router.post(
   createLawyerProfileValidator,
   validateRequest,
   asyncHandler(createLawyerProfile),
+);
+
+router.get(
+  '/:profileId',
+  getPublicLawyerProfileValidator,
+  validateRequest,
+  asyncHandler(getPublicLawyerProfile),
 );
 
 export default router;

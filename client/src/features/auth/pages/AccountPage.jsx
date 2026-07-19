@@ -4,6 +4,7 @@ import {
   ChevronRight,
   Mail,
   Scale,
+  Search,
   ShieldCheck,
   UserRound,
 } from 'lucide-react';
@@ -46,6 +47,23 @@ const AccountPage = () => {
                 <span className="block font-bold">Lawyer profile</span>
                 <span className="mt-1 block text-sm text-gray-600">
                   Manage professional details and availability
+                </span>
+              </span>
+            </span>
+            <ChevronRight aria-hidden="true" className="h-5 w-5 text-gray-500" />
+          </Link>
+        ) : null}
+        {user.role === USER_ROLES.CLIENT ? (
+          <Link
+            className="mb-8 flex items-center justify-between gap-4 border-l-4 border-forest bg-white px-5 py-5 hover:bg-emerald-50 sm:px-7"
+            to="/lawyers"
+          >
+            <span className="flex items-center gap-3">
+              <Search aria-hidden="true" className="h-5 w-5 text-forest" />
+              <span>
+                <span className="block font-bold">Find a lawyer</span>
+                <span className="mt-1 block text-sm text-gray-600">
+                  Browse approved lawyers and consultation availability
                 </span>
               </span>
             </span>
