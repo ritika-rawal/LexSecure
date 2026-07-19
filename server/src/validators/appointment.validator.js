@@ -120,7 +120,20 @@ export const reviewAppointmentValidator = [
     .withMessage('Decision must be approved or rejected.'),
 ];
 
-const ALLOWED_DASHBOARD_QUERY_FIELDS = new Set(['status', 'page', 'limit']);
+const APPOINTMENT_DASHBOARD_VIEWS = Object.freeze([
+  'all',
+  'upcoming',
+  'history',
+]);
+const ALLOWED_DASHBOARD_QUERY_FIELDS = new Set([
+  'view',
+  'status',
+  'search',
+  'from',
+  'to',
+  'page',
+  'limit',
+]);
 
 export const listMyAppointmentsValidator = [
   query().custom((queryParameters) => {
@@ -134,6 +147,14 @@ export const listMyAppointmentsValidator = [
 
     return true;
   }),
+  query('view')
+    .optional()
+    .isString()
+    .withMessage('Appointment view must be text.')
+    .trim()
+    .toLowerCase()
+    .isIn(APPOINTMENT_DASHBOARD_VIEWS)
+    .withMessage('Appointment view must be all, upcoming, or history.'),
   query('status')
     .optional()
     .isString()
@@ -142,6 +163,30 @@ export const listMyAppointmentsValidator = [
     .toLowerCase()
     .isIn(APPOINTMENT_STATUS_VALUES)
     .withMessage('Appointment status is invalid.'),
+  query('search')
+    .optional()
+    .isString()
+    .withMessage('Participant search must be text.')
+    .trim()
+    .isLength({ min: 2, max: 80 })
+    .withMessage('Participant search must be between 2 and 80 characters.'),
+  query('from')
+    .optional()
+    .isISO8601({ strict: true, strictSeparator: true })
+    .withMessage('Start date must be a valid ISO 8601 date and time.')
+    .toDate(),
+  query('to')
+    .optional()
+    .isISO8601({ strict: true, strictSeparator: true })
+    .withMessage('End date must be a valid ISO 8601 date and time.')
+    .toDate()
+    .custom((endDate, { req }) => {
+      if (req.query.from && endDate < req.query.from) {
+        throw new Error('End date must be on or after the start date.');
+      }
+
+      return true;
+    }),
   query('page')
     .optional()
     .isInt({ min: 1, max: 10_000 })

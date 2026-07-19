@@ -6,6 +6,7 @@ import {
 } from '../constants/appointment.js';
 import { Appointment } from '../models/Appointment.model.js';
 import { LawyerProfile } from '../models/LawyerProfile.model.js';
+import { User } from '../models/User.model.js';
 import {
   buildReservedTimeBlocks,
   getWeekDayForLocalDate,
@@ -444,7 +445,11 @@ export const reviewAppointment = async ({ lawyerId, appointmentId, decision }) =
 export const listAppointmentsForUser = async ({
   userId,
   userRole,
+  view,
   status,
+  search,
+  from,
+  to,
   page,
   limit,
 }) => {
@@ -452,15 +457,78 @@ export const listAppointmentsForUser = async ({
     userRole === USER_ROLES.CLIENT ? 'client' : 'lawyer';
   const participantPath =
     userRole === USER_ROLES.CLIENT ? 'lawyer' : 'client';
+  const participantRole =
+    userRole === USER_ROLES.CLIENT ? USER_ROLES.LAWYER : USER_ROLES.CLIENT;
+  const startsAtFilter = {};
+  const terminalStatuses = [
+    APPOINTMENT_STATUS.REJECTED,
+    APPOINTMENT_STATUS.CANCELLED,
+    APPOINTMENT_STATUS.COMPLETED,
+  ];
+  const upcomingStatuses = [
+    APPOINTMENT_STATUS.PENDING,
+    APPOINTMENT_STATUS.APPROVED,
+  ];
+  const statusFilter =
+    view === 'upcoming'
+      ? {
+          $in: status && !upcomingStatuses.includes(status)
+            ? []
+            : status
+              ? [status]
+              : upcomingStatuses,
+        }
+      : status;
+
+  if (view === 'upcoming') {
+    startsAtFilter.$gt = new Date();
+  }
+
+  if (from && (!startsAtFilter.$gte || from > startsAtFilter.$gte)) {
+    startsAtFilter.$gte = from;
+  }
+
+  if (to && (!startsAtFilter.$lte || to < startsAtFilter.$lte)) {
+    startsAtFilter.$lte = to;
+  }
+
   const filter = {
     [ownershipField]: userId,
-    ...(status ? { status } : {}),
+    ...(statusFilter ? { status: statusFilter } : {}),
+    ...(Object.keys(startsAtFilter).length > 0
+      ? { startsAt: startsAtFilter }
+      : {}),
+    ...(view === 'history'
+      ? {
+          $or: [
+            { startsAt: { $lte: new Date() } },
+            { status: { $in: terminalStatuses } },
+          ],
+        }
+      : {}),
   };
+
+  if (search) {
+    const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const participantIds = await User.find({
+      role: participantRole,
+      fullName: {
+        $regex: escapedSearch,
+        $options: 'i',
+      },
+    }).distinct('_id');
+
+    filter[participantPath] = { $in: participantIds };
+  }
+
   const skip = (page - 1) * limit;
   const [appointments, totalItems] = await Promise.all([
     Appointment.find(filter)
       .select('+legalIssueSummary +cancellationReason +cancelledByRole')
-      .sort({ startsAt: -1, _id: -1 })
+      .sort({
+        startsAt: view === 'upcoming' ? 1 : -1,
+        _id: view === 'upcoming' ? 1 : -1,
+      })
       .skip(skip)
       .limit(limit)
       .populate(participantPath, 'fullName')

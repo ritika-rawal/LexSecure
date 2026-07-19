@@ -66,7 +66,11 @@ export const listMyAppointments = async (req, res) => {
   const result = await listAppointmentsForUserService({
     userId: req.user.id,
     userRole: req.user.role,
+    view: req.query.view || 'all',
     status: req.query.status,
+    search: req.query.search,
+    from: req.query.from,
+    to: req.query.to,
     page: req.query.page || DEFAULT_PAGE,
     limit: req.query.limit || DEFAULT_LIMIT,
   });

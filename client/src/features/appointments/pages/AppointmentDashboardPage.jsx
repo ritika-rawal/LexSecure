@@ -18,10 +18,12 @@ import { USER_ROLES } from '../../auth/constants/userRoles.js';
 import { useAuth } from '../../auth/hooks/useAuth.js';
 import { getAuthApiError } from '../../auth/utils/apiError.js';
 import { getMyAppointments } from '../api/appointmentDashboard.api.js';
+import AppointmentHistoryFilters from '../components/AppointmentHistoryFilters.jsx';
 import DashboardAppointmentItem from '../components/DashboardAppointmentItem.jsx';
 import {
   APPOINTMENT_DASHBOARD_PAGE_SIZE,
   APPOINTMENT_STATUS_FILTERS,
+  APPOINTMENT_VIEW_FILTERS,
 } from '../constants/appointmentDashboard.js';
 
 const EMPTY_PAGINATION = Object.freeze({
@@ -30,11 +32,18 @@ const EMPTY_PAGINATION = Object.freeze({
   totalItems: 0,
   totalPages: 0,
 });
+const EMPTY_FILTERS = Object.freeze({
+  search: '',
+  fromDate: '',
+  toDate: '',
+});
 
 const AppointmentDashboardPage = () => {
   const { user } = useAuth();
   const isClient = user.role === USER_ROLES.CLIENT;
+  const [view, setView] = useState('upcoming');
   const [status, setStatus] = useState('');
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [page, setPage] = useState(1);
   const [reloadKey, setReloadKey] = useState(0);
   const [appointments, setAppointments] = useState([]);
@@ -52,7 +61,11 @@ const AppointmentDashboardPage = () => {
 
       try {
         const response = await getMyAppointments({
+          view,
           status,
+          search: filters.search,
+          fromDate: filters.fromDate,
+          toDate: filters.toDate,
           page,
           limit: APPOINTMENT_DASHBOARD_PAGE_SIZE,
           signal: controller.signal,
@@ -86,7 +99,7 @@ const AppointmentDashboardPage = () => {
 
     loadAppointments();
     return () => controller.abort();
-  }, [page, reloadKey, status]);
+  }, [filters, page, reloadKey, status, view]);
 
   const refreshDashboard = () => {
     setFeedback('');
@@ -145,6 +158,27 @@ const AppointmentDashboardPage = () => {
         </div>
 
         <div className="mb-7 overflow-x-auto border-y border-line bg-white" aria-label="Appointment status filter">
+          <div className="flex min-w-max border-b border-line px-2">
+            {APPOINTMENT_VIEW_FILTERS.map((filter) => (
+              <button
+                aria-pressed={view === filter.value}
+                className={`h-12 px-4 text-sm font-semibold transition-colors ${
+                  view === filter.value
+                    ? 'bg-ink text-white'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-ink'
+                }`}
+                key={filter.value}
+                onClick={() => {
+                  setView(filter.value);
+                  setPage(1);
+                  setFeedback('');
+                }}
+                type="button"
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
           <div className="flex min-w-max px-2">
             {APPOINTMENT_STATUS_FILTERS.map((filter) => (
               <button
@@ -158,6 +192,7 @@ const AppointmentDashboardPage = () => {
                 onClick={() => {
                   setStatus(filter.value);
                   setPage(1);
+                  setFeedback('');
                 }}
                 type="button"
               >
@@ -166,6 +201,17 @@ const AppointmentDashboardPage = () => {
             ))}
           </div>
         </div>
+
+        <AppointmentHistoryFilters
+          filters={filters}
+          isLoading={isLoading}
+          onApply={(nextFilters) => {
+            setFilters(nextFilters);
+            setPage(1);
+            setFeedback('');
+          }}
+          participantLabel={isClient ? 'Lawyer' : 'Client'}
+        />
 
         {feedback ? (
           <div className="mb-6 flex items-start gap-3 border border-emerald-300 bg-emerald-50 p-4 text-emerald-900" role="status">
@@ -198,7 +244,7 @@ const AppointmentDashboardPage = () => {
             <CalendarRange aria-hidden="true" className="mx-auto mb-4 h-10 w-10 text-forest" />
             <h2 className="text-xl font-bold">No appointments found</h2>
             <p className="mt-2 text-gray-600">
-              There are no {status || 'recorded'} appointments in this view.
+              No appointments match the selected view and filters.
             </p>
           </section>
         ) : null}

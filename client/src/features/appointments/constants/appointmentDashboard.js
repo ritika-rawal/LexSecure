@@ -7,4 +7,10 @@ export const APPOINTMENT_STATUS_FILTERS = Object.freeze([
   { value: 'completed', label: 'Completed' },
 ]);
 
+export const APPOINTMENT_VIEW_FILTERS = Object.freeze([
+  { value: 'upcoming', label: 'Upcoming' },
+  { value: 'history', label: 'History' },
+  { value: 'all', label: 'All dates' },
+]);
+
 export const APPOINTMENT_DASHBOARD_PAGE_SIZE = 10;
