@@ -6,6 +6,7 @@ import {
   createAppointment,
   listMyAppointments,
   listPendingLawyerAppointments,
+  rescheduleAppointment,
   reviewAppointment,
 } from '../controllers/appointment.controller.js';
 import {
@@ -19,6 +20,7 @@ import {
   createAppointmentValidator,
   listMyAppointmentsValidator,
   listLawyerAppointmentsValidator,
+  rescheduleAppointmentValidator,
   reviewAppointmentValidator,
 } from '../validators/appointment.validator.js';
 
@@ -67,6 +69,15 @@ router.patch(
   cancelAppointmentValidator,
   validateRequest,
   asyncHandler(cancelAppointment),
+);
+
+router.patch(
+  '/:appointmentId/reschedule',
+  asyncHandler(requireAuthentication),
+  authorizeRoles(USER_ROLES.CLIENT),
+  rescheduleAppointmentValidator,
+  validateRequest,
+  asyncHandler(rescheduleAppointment),
 );
 
 export default router;

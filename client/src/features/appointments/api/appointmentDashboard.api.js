@@ -26,3 +26,21 @@ export const cancelAppointment = async ({ appointmentId, reason }) => {
 
   return response.data;
 };
+
+export const rescheduleAppointment = async ({
+  appointmentId,
+  appointmentDate,
+  startTime,
+  endTime,
+}) => {
+  const response = await httpClient.patch(
+    `/appointments/${encodeURIComponent(appointmentId)}/reschedule`,
+    {
+      appointmentDate,
+      startTime,
+      endTime,
+    },
+  );
+
+  return response.data;
+};

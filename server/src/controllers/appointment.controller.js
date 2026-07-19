@@ -3,6 +3,7 @@ import {
   createAppointment as createAppointmentService,
   listAppointmentsForUser as listAppointmentsForUserService,
   listPendingLawyerAppointments as listPendingLawyerAppointmentsService,
+  rescheduleAppointment as rescheduleAppointmentService,
   reviewAppointment as reviewAppointmentService,
 } from '../services/appointment.service.js';
 import {
@@ -91,6 +92,25 @@ export const cancelAppointment = async (req, res) => {
   res.status(200).json({
     status: 'success',
     message: 'Appointment cancelled successfully.',
+    data: {
+      appointment: buildSafeAppointmentDashboardResponse(
+        appointment,
+        req.user.role,
+      ),
+    },
+  });
+};
+
+export const rescheduleAppointment = async (req, res) => {
+  const appointment = await rescheduleAppointmentService({
+    clientId: req.user.id,
+    appointmentId: req.params.appointmentId,
+    scheduleData: req.body,
+  });
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Appointment rescheduled and returned for lawyer approval.',
     data: {
       appointment: buildSafeAppointmentDashboardResponse(
         appointment,

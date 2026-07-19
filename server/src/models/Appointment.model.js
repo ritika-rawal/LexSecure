@@ -130,6 +130,15 @@ const appointmentSchema = new Schema(
     cancelledAt: {
       type: Date,
     },
+    rescheduledAt: {
+      type: Date,
+    },
+    rescheduleCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+      required: true,
+    },
     reservedTimeBlocks: {
       type: [Date],
       default: undefined,

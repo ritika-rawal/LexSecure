@@ -179,3 +179,47 @@ export const cancelAppointmentValidator = [
     .isLength({ min: 10, max: 500 })
     .withMessage('Cancellation reason must be between 10 and 500 characters.'),
 ];
+
+const ALLOWED_RESCHEDULE_FIELDS = new Set([
+  'appointmentDate',
+  'startTime',
+  'endTime',
+]);
+
+export const rescheduleAppointmentValidator = [
+  param('appointmentId')
+    .isMongoId()
+    .withMessage('Appointment ID must be a valid MongoDB identifier.'),
+  body().custom((requestBody) => {
+    const containsOnlyAllowedFields =
+      requestBody
+      && typeof requestBody === 'object'
+      && !Array.isArray(requestBody)
+      && Object.keys(requestBody).length === ALLOWED_RESCHEDULE_FIELDS.size
+      && Object.keys(requestBody).every((key) =>
+        ALLOWED_RESCHEDULE_FIELDS.has(key));
+
+    if (!containsOnlyAllowedFields) {
+      throw new Error(
+        'Request must contain only the appointment date, start time, and end time.',
+      );
+    }
+
+    return true;
+  }),
+  body('appointmentDate')
+    .isString()
+    .withMessage('Appointment date must be text.')
+    .custom(isValidLocalDate)
+    .withMessage('Appointment date must be a valid date in YYYY-MM-DD format.'),
+  body('startTime')
+    .isString()
+    .withMessage('Start time must be text.')
+    .matches(TIME_24_HOUR_PATTERN)
+    .withMessage('Start time must use HH:mm format.'),
+  body('endTime')
+    .isString()
+    .withMessage('End time must be text.')
+    .matches(TIME_24_HOUR_PATTERN)
+    .withMessage('End time must use HH:mm format.'),
+];

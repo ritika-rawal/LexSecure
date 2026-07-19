@@ -32,30 +32,18 @@ const createConflictError = () => {
   return error;
 };
 
-export const createAppointment = async ({ clientId, appointmentData }) => {
-  const profile = await LawyerProfile.findOne({
-    _id: appointmentData.lawyerProfileId,
-    approvalStatus: LAWYER_APPROVAL_STATUS.APPROVED,
-    isVisible: true,
-  }).populate({
-    path: 'user',
-    match: {
-      role: USER_ROLES.LAWYER,
-      isActive: true,
-    },
-    select: '_id',
-  });
-
-  if (!profile || !profile.user) {
-    throw createUnavailableProfileError();
-  }
-
-  const dayOfWeek = getWeekDayForLocalDate(appointmentData.appointmentDate);
+const resolveAppointmentSlot = ({
+  profile,
+  appointmentDate,
+  startTime,
+  endTime,
+}) => {
+  const dayOfWeek = getWeekDayForLocalDate(appointmentDate);
   const selectedSlot = profile.weeklyAvailability.find(
     (slot) =>
       slot.dayOfWeek === dayOfWeek
-      && slot.startTime === appointmentData.startTime
-      && slot.endTime === appointmentData.endTime,
+      && slot.startTime === startTime
+      && slot.endTime === endTime,
   );
 
   if (!selectedSlot) {
@@ -69,12 +57,12 @@ export const createAppointment = async ({ clientId, appointmentData }) => {
 
   try {
     startsAt = localDateTimeToUtc({
-      dateValue: appointmentData.appointmentDate,
+      dateValue: appointmentDate,
       timeValue: selectedSlot.startTime,
       timezone: profile.timezone,
     });
     endsAt = localDateTimeToUtc({
-      dateValue: appointmentData.appointmentDate,
+      dateValue: appointmentDate,
       timeValue: selectedSlot.endTime,
       timezone: profile.timezone,
     });
@@ -93,7 +81,9 @@ export const createAppointment = async ({ clientId, appointmentData }) => {
   }
 
   if (startsAt.getTime() > now + MAXIMUM_ADVANCE_BOOKING_MS) {
-    throw createInvalidSlotError('Appointments cannot be booked more than one year ahead.');
+    throw createInvalidSlotError(
+      'Appointments cannot be booked more than one year ahead.',
+    );
   }
 
   const duration = endsAt.getTime() - startsAt.getTime();
@@ -107,7 +97,37 @@ export const createAppointment = async ({ clientId, appointmentData }) => {
     );
   }
 
-  const reservedTimeBlocks = buildReservedTimeBlocks(startsAt, endsAt);
+  return {
+    startsAt,
+    endsAt,
+    reservedTimeBlocks: buildReservedTimeBlocks(startsAt, endsAt),
+  };
+};
+
+export const createAppointment = async ({ clientId, appointmentData }) => {
+  const profile = await LawyerProfile.findOne({
+    _id: appointmentData.lawyerProfileId,
+    approvalStatus: LAWYER_APPROVAL_STATUS.APPROVED,
+    isVisible: true,
+  }).populate({
+    path: 'user',
+    match: {
+      role: USER_ROLES.LAWYER,
+      isActive: true,
+    },
+    select: '_id',
+  });
+
+  if (!profile || !profile.user) {
+    throw createUnavailableProfileError();
+  }
+
+  const { startsAt, endsAt, reservedTimeBlocks } = resolveAppointmentSlot({
+    profile,
+    appointmentDate: appointmentData.appointmentDate,
+    startTime: appointmentData.startTime,
+    endTime: appointmentData.endTime,
+  });
   const conflictingAppointment = await Appointment.exists({
     isSlotReserved: true,
     reservedTimeBlocks: { $in: reservedTimeBlocks },
@@ -249,6 +269,131 @@ export const cancelAppointment = async ({
   }
 
   throw createInvalidDecisionError('This appointment cannot be cancelled.');
+};
+
+export const rescheduleAppointment = async ({
+  clientId,
+  appointmentId,
+  scheduleData,
+}) => {
+  const appointment = await Appointment.findOne({
+    _id: appointmentId,
+    client: clientId,
+  }).select('lawyer lawyerProfile startsAt endsAt status');
+
+  if (!appointment) {
+    throw createAppointmentNotFoundError();
+  }
+
+  if (
+    ![APPOINTMENT_STATUS.PENDING, APPOINTMENT_STATUS.APPROVED].includes(
+      appointment.status,
+    )
+  ) {
+    throw createInvalidDecisionError(
+      'Only pending or approved appointments can be rescheduled.',
+    );
+  }
+
+  if (appointment.startsAt.getTime() <= Date.now()) {
+    throw createInvalidDecisionError('Past appointments cannot be rescheduled.');
+  }
+
+  const profile = await LawyerProfile.findOne({
+    _id: appointment.lawyerProfile,
+    user: appointment.lawyer,
+    approvalStatus: LAWYER_APPROVAL_STATUS.APPROVED,
+    isVisible: true,
+  }).populate({
+    path: 'user',
+    match: {
+      role: USER_ROLES.LAWYER,
+      isActive: true,
+    },
+    select: '_id',
+  });
+
+  if (!profile || !profile.user) {
+    throw createUnavailableProfileError();
+  }
+
+  const { startsAt, endsAt, reservedTimeBlocks } = resolveAppointmentSlot({
+    profile,
+    appointmentDate: scheduleData.appointmentDate,
+    startTime: scheduleData.startTime,
+    endTime: scheduleData.endTime,
+  });
+
+  if (
+    startsAt.getTime() === appointment.startsAt.getTime()
+    && endsAt.getTime() === appointment.endsAt.getTime()
+  ) {
+    throw createInvalidSlotError(
+      'Select a different time when rescheduling an appointment.',
+    );
+  }
+
+  const conflictingAppointment = await Appointment.exists({
+    _id: { $ne: appointment._id },
+    isSlotReserved: true,
+    reservedTimeBlocks: { $in: reservedTimeBlocks },
+    $or: [
+      { lawyer: appointment.lawyer },
+      { client: clientId },
+    ],
+  });
+
+  if (conflictingAppointment) {
+    throw createConflictError();
+  }
+
+  try {
+    const updatedAppointment = await Appointment.findOneAndUpdate(
+      {
+        _id: appointment._id,
+        client: clientId,
+        status: {
+          $in: [APPOINTMENT_STATUS.PENDING, APPOINTMENT_STATUS.APPROVED],
+        },
+        startsAt: appointment.startsAt,
+      },
+      {
+        $set: {
+          startsAt,
+          endsAt,
+          timezone: profile.timezone,
+          reservedTimeBlocks,
+          isSlotReserved: true,
+          status: APPOINTMENT_STATUS.PENDING,
+          rescheduledAt: new Date(),
+        },
+        $inc: {
+          rescheduleCount: 1,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    )
+      .select('+legalIssueSummary')
+      .populate('lawyer', 'fullName')
+      .exec();
+
+    if (!updatedAppointment) {
+      throw createInvalidDecisionError(
+        'The appointment changed before rescheduling. Refresh and try again.',
+      );
+    }
+
+    return updatedAppointment;
+  } catch (error) {
+    if (error.code === 11000) {
+      throw createConflictError();
+    }
+
+    throw error;
+  }
 };
 
 export const reviewAppointment = async ({ lawyerId, appointmentId, decision }) => {

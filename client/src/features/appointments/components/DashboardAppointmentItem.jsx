@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import {
-  CalendarDays,
   AlertCircle,
+  CalendarClock,
+  CalendarDays,
   ChevronDown,
   ChevronUp,
   Clock3,
@@ -14,6 +15,7 @@ import {
 
 import { getAuthApiError } from '../../auth/utils/apiError.js';
 import { cancelAppointment } from '../api/appointmentDashboard.api.js';
+import RescheduleAppointmentForm from './RescheduleAppointmentForm.jsx';
 import {
   formatAppointmentDate,
   formatAppointmentTime,
@@ -32,6 +34,7 @@ const STATUS_STYLES = Object.freeze({
 const DashboardAppointmentItem = ({ appointment, onChanged }) => {
   const [isSummaryVisible, setIsSummaryVisible] = useState(false);
   const [isCancellationOpen, setIsCancellationOpen] = useState(false);
+  const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
   const [cancellationReason, setCancellationReason] = useState('');
   const [cancellationError, setCancellationError] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
@@ -44,6 +47,10 @@ const DashboardAppointmentItem = ({ appointment, onChanged }) => {
       (viewerIsClient && ['pending', 'approved'].includes(appointment.status))
       || (!viewerIsClient && appointment.status === 'approved')
     );
+  const canReschedule =
+    viewerIsClient
+    && !isExpiredAppointment(appointment.startsAt)
+    && ['pending', 'approved'].includes(appointment.status);
 
   const handleCancellation = async () => {
     const normalizedReason = cancellationReason.trim();
@@ -121,6 +128,20 @@ const DashboardAppointmentItem = ({ appointment, onChanged }) => {
                   {formatAppointmentDate(appointment.createdAt, appointment.timezone)}
                 </dd>
               </div>
+              {appointment.rescheduledAt ? (
+                <div>
+                  <dt className="flex items-center gap-2 font-semibold text-gray-500">
+                    <CalendarClock aria-hidden="true" className="h-4 w-4" />
+                    Last rescheduled
+                  </dt>
+                  <dd className="mt-1">
+                    {formatAppointmentDate(
+                      appointment.rescheduledAt,
+                      appointment.timezone,
+                    )}
+                  </dd>
+                </div>
+              ) : null}
             </dl>
 
             {appointment.cancellation ? (
@@ -159,9 +180,15 @@ const DashboardAppointmentItem = ({ appointment, onChanged }) => {
             ) : null}
           </div>
 
-          {canCancel ? (
+          {canCancel || canReschedule ? (
             <div className="border-t border-line px-5 py-4 sm:px-6">
-              {isCancellationOpen ? (
+              {isRescheduleOpen ? (
+                <RescheduleAppointmentForm
+                  appointment={appointment}
+                  onChanged={onChanged}
+                  onClose={() => setIsRescheduleOpen(false)}
+                />
+              ) : isCancellationOpen ? (
                 <div>
                   <label className="block text-sm font-semibold" htmlFor={`cancel-reason-${appointment.id}`}>
                     Cancellation reason
@@ -218,15 +245,27 @@ const DashboardAppointmentItem = ({ appointment, onChanged }) => {
                   </div>
                 </div>
               ) : (
-                <div className="flex justify-end">
-                  <button
-                    className="flex h-10 items-center gap-2 border border-red-300 bg-white px-4 text-sm font-semibold text-red-700 hover:bg-red-50"
-                    onClick={() => setIsCancellationOpen(true)}
-                    type="button"
-                  >
-                    <X aria-hidden="true" className="h-4 w-4" />
-                    Cancel appointment
-                  </button>
+                <div className="flex flex-col justify-end gap-2 sm:flex-row">
+                  {canReschedule ? (
+                    <button
+                      className="flex h-10 items-center justify-center gap-2 border border-gray-300 bg-white px-4 text-sm font-semibold text-forest hover:bg-emerald-50"
+                      onClick={() => setIsRescheduleOpen(true)}
+                      type="button"
+                    >
+                      <CalendarClock aria-hidden="true" className="h-4 w-4" />
+                      Reschedule
+                    </button>
+                  ) : null}
+                  {canCancel ? (
+                    <button
+                      className="flex h-10 items-center justify-center gap-2 border border-red-300 bg-white px-4 text-sm font-semibold text-red-700 hover:bg-red-50"
+                      onClick={() => setIsCancellationOpen(true)}
+                      type="button"
+                    >
+                      <X aria-hidden="true" className="h-4 w-4" />
+                      Cancel appointment
+                    </button>
+                  ) : null}
                 </div>
               )}
             </div>

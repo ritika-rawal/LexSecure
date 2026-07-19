@@ -50,6 +50,12 @@ export const buildSafeAppointmentDashboardResponse = (
     timezone: appointment.timezone,
     consultationType: appointment.consultationType,
     legalIssueSummary: appointment.legalIssueSummary,
+    lawyerProfileId:
+      viewerRole === USER_ROLES.CLIENT
+        ? appointment.lawyerProfile.toString()
+        : null,
+    rescheduledAt: appointment.rescheduledAt,
+    rescheduleCount: appointment.rescheduleCount,
     cancellation:
       appointment.status === APPOINTMENT_STATUS.CANCELLED
         ? Object.freeze({
