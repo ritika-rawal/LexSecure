@@ -4,6 +4,7 @@ import {
   AlertCircle,
   ArrowLeft,
   CalendarRange,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   LoaderCircle,
@@ -40,6 +41,7 @@ const AppointmentDashboardPage = () => {
   const [pagination, setPagination] = useState(EMPTY_PAGINATION);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+  const [feedback, setFeedback] = useState('');
 
   useEffect(() => {
     const controller = new AbortController();
@@ -87,6 +89,7 @@ const AppointmentDashboardPage = () => {
   }, [page, reloadKey, status]);
 
   const refreshDashboard = () => {
+    setFeedback('');
     setReloadKey((current) => current + 1);
   };
 
@@ -164,6 +167,13 @@ const AppointmentDashboardPage = () => {
           </div>
         </div>
 
+        {feedback ? (
+          <div className="mb-6 flex items-start gap-3 border border-emerald-300 bg-emerald-50 p-4 text-emerald-900" role="status">
+            <CheckCircle2 aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0" />
+            <p>{feedback}</p>
+          </div>
+        ) : null}
+
         {loadError ? (
           <div className="mb-6 flex items-start gap-3 border border-red-300 bg-red-50 p-4 text-red-800" role="alert">
             <AlertCircle aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0" />
@@ -201,7 +211,14 @@ const AppointmentDashboardPage = () => {
             </div>
 
             {appointments.map((appointment) => (
-              <DashboardAppointmentItem appointment={appointment} key={appointment.id} />
+              <DashboardAppointmentItem
+                appointment={appointment}
+                key={appointment.id}
+                onChanged={(message) => {
+                  setFeedback(message);
+                  setReloadKey((current) => current + 1);
+                }}
+              />
             ))}
 
             {pagination.totalPages > 1 ? (

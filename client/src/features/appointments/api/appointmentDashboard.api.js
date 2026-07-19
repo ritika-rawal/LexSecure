@@ -17,3 +17,12 @@ export const getMyAppointments = async ({
 
   return response.data;
 };
+
+export const cancelAppointment = async ({ appointmentId, reason }) => {
+  const response = await httpClient.patch(
+    `/appointments/${encodeURIComponent(appointmentId)}/cancel`,
+    { reason },
+  );
+
+  return response.data;
+};

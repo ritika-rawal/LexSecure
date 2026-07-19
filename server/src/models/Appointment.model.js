@@ -115,6 +115,21 @@ const appointmentSchema = new Schema(
       required: true,
       index: true,
     },
+    cancellationReason: {
+      type: String,
+      trim: true,
+      minlength: 10,
+      maxlength: 500,
+      select: false,
+    },
+    cancelledByRole: {
+      type: String,
+      enum: [USER_ROLES.CLIENT, USER_ROLES.LAWYER],
+      select: false,
+    },
+    cancelledAt: {
+      type: Date,
+    },
     reservedTimeBlocks: {
       type: [Date],
       default: undefined,
@@ -175,6 +190,8 @@ appointmentSchema.index(
 appointmentSchema.set('toJSON', {
   transform(document, returnedObject) {
     delete returnedObject.legalIssueSummary;
+    delete returnedObject.cancellationReason;
+    delete returnedObject.cancelledByRole;
     delete returnedObject.reservedTimeBlocks;
     delete returnedObject.isSlotReserved;
     return returnedObject;

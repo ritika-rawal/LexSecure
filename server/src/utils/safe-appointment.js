@@ -1,3 +1,4 @@
+import { APPOINTMENT_STATUS } from '../constants/appointment.js';
 import { USER_ROLES } from '../constants/user-roles.js';
 
 export const buildSafeAppointmentConfirmation = (appointment) =>
@@ -49,6 +50,14 @@ export const buildSafeAppointmentDashboardResponse = (
     timezone: appointment.timezone,
     consultationType: appointment.consultationType,
     legalIssueSummary: appointment.legalIssueSummary,
+    cancellation:
+      appointment.status === APPOINTMENT_STATUS.CANCELLED
+        ? Object.freeze({
+            reason: appointment.cancellationReason,
+            cancelledByRole: appointment.cancelledByRole,
+            cancelledAt: appointment.cancelledAt,
+          })
+        : null,
     status: appointment.status,
     createdAt: appointment.createdAt,
     updatedAt: appointment.updatedAt,

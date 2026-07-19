@@ -153,3 +153,29 @@ export const listMyAppointmentsValidator = [
     .withMessage('Limit must be between 1 and 50.')
     .toInt(),
 ];
+
+export const cancelAppointmentValidator = [
+  param('appointmentId')
+    .isMongoId()
+    .withMessage('Appointment ID must be a valid MongoDB identifier.'),
+  body().custom((requestBody) => {
+    const containsOnlyReason =
+      requestBody
+      && typeof requestBody === 'object'
+      && !Array.isArray(requestBody)
+      && Object.keys(requestBody).length === 1
+      && Object.hasOwn(requestBody, 'reason');
+
+    if (!containsOnlyReason) {
+      throw new Error('Request must contain only the cancellation reason.');
+    }
+
+    return true;
+  }),
+  body('reason')
+    .isString()
+    .withMessage('Cancellation reason must be text.')
+    .trim()
+    .isLength({ min: 10, max: 500 })
+    .withMessage('Cancellation reason must be between 10 and 500 characters.'),
+];

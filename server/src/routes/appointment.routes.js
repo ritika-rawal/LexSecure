@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import { USER_ROLES } from '../constants/user-roles.js';
 import {
+  cancelAppointment,
   createAppointment,
   listMyAppointments,
   listPendingLawyerAppointments,
@@ -14,6 +15,7 @@ import {
 import { validateRequest } from '../middleware/validate-request.middleware.js';
 import { asyncHandler } from '../utils/async-handler.js';
 import {
+  cancelAppointmentValidator,
   createAppointmentValidator,
   listMyAppointmentsValidator,
   listLawyerAppointmentsValidator,
@@ -56,6 +58,15 @@ router.patch(
   reviewAppointmentValidator,
   validateRequest,
   asyncHandler(reviewAppointment),
+);
+
+router.patch(
+  '/:appointmentId/cancel',
+  asyncHandler(requireAuthentication),
+  authorizeRoles(USER_ROLES.CLIENT, USER_ROLES.LAWYER),
+  cancelAppointmentValidator,
+  validateRequest,
+  asyncHandler(cancelAppointment),
 );
 
 export default router;

@@ -183,6 +183,74 @@ export const listPendingLawyerAppointments = async ({ lawyerId, page, limit }) =
   };
 };
 
+export const cancelAppointment = async ({
+  userId,
+  userRole,
+  appointmentId,
+  reason,
+}) => {
+  const ownershipField =
+    userRole === USER_ROLES.CLIENT ? 'client' : 'lawyer';
+  const participantPath =
+    userRole === USER_ROLES.CLIENT ? 'lawyer' : 'client';
+  const allowedStatuses =
+    userRole === USER_ROLES.CLIENT
+      ? [APPOINTMENT_STATUS.PENDING, APPOINTMENT_STATUS.APPROVED]
+      : [APPOINTMENT_STATUS.APPROVED];
+  const appointment = await Appointment.findOneAndUpdate(
+    {
+      _id: appointmentId,
+      [ownershipField]: userId,
+      status: { $in: allowedStatuses },
+      startsAt: { $gt: new Date() },
+    },
+    {
+      $set: {
+        status: APPOINTMENT_STATUS.CANCELLED,
+        cancellationReason: reason,
+        cancelledByRole: userRole,
+        cancelledAt: new Date(),
+        isSlotReserved: false,
+      },
+    },
+    {
+      new: true,
+      runValidators: true,
+    },
+  )
+    .select('+legalIssueSummary +cancellationReason +cancelledByRole')
+    .populate(participantPath, 'fullName')
+    .exec();
+
+  if (appointment) {
+    return appointment;
+  }
+
+  const existingAppointment = await Appointment.findOne({
+    _id: appointmentId,
+    [ownershipField]: userId,
+  }).select('status startsAt');
+
+  if (!existingAppointment) {
+    throw createAppointmentNotFoundError();
+  }
+
+  if (existingAppointment.startsAt.getTime() <= Date.now()) {
+    throw createInvalidDecisionError('Past appointments cannot be cancelled.');
+  }
+
+  if (
+    userRole === USER_ROLES.LAWYER
+    && existingAppointment.status === APPOINTMENT_STATUS.PENDING
+  ) {
+    throw createInvalidDecisionError(
+      'Pending requests must be rejected from the appointment inbox.',
+    );
+  }
+
+  throw createInvalidDecisionError('This appointment cannot be cancelled.');
+};
+
 export const reviewAppointment = async ({ lawyerId, appointmentId, decision }) => {
   const update = {
     $set: {
@@ -246,7 +314,7 @@ export const listAppointmentsForUser = async ({
   const skip = (page - 1) * limit;
   const [appointments, totalItems] = await Promise.all([
     Appointment.find(filter)
-      .select('+legalIssueSummary')
+      .select('+legalIssueSummary +cancellationReason +cancelledByRole')
       .sort({ startsAt: -1, _id: -1 })
       .skip(skip)
       .limit(limit)

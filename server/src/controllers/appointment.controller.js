@@ -1,4 +1,5 @@
 import {
+  cancelAppointment as cancelAppointmentService,
   createAppointment as createAppointmentService,
   listAppointmentsForUser as listAppointmentsForUserService,
   listPendingLawyerAppointments as listPendingLawyerAppointmentsService,
@@ -75,6 +76,26 @@ export const listMyAppointments = async (req, res) => {
       appointments: result.appointments.map((appointment) =>
         buildSafeAppointmentDashboardResponse(appointment, req.user.role)),
       pagination: result.pagination,
+    },
+  });
+};
+
+export const cancelAppointment = async (req, res) => {
+  const appointment = await cancelAppointmentService({
+    userId: req.user.id,
+    userRole: req.user.role,
+    appointmentId: req.params.appointmentId,
+    reason: req.body.reason,
+  });
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Appointment cancelled successfully.',
+    data: {
+      appointment: buildSafeAppointmentDashboardResponse(
+        appointment,
+        req.user.role,
+      ),
     },
   });
 };
