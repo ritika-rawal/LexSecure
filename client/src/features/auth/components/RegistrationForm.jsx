@@ -8,9 +8,9 @@ import {
   EyeOff,
   LoaderCircle,
   LockKeyhole,
-  Mail,
+  Mail, 
   UserRound,
-} from 'lucide-react';
+} from 'lucide-react';  
 
 import { registerUser } from '../api/registration.api.js';
 import { getAuthApiError } from '../utils/apiError.js';
@@ -33,36 +33,27 @@ const RegistrationForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const updateField = (event) => {
-    const { name, value } = event.target;
-
-    setValues((currentValues) => ({ ...currentValues, [name]: value }));
-    setErrors((currentErrors) => ({ ...currentErrors, [name]: undefined }));
+  const updateField = ({ target: { name, value } }) => {
+    setValues((current) => ({ ...current, [name]: value }));
+    setErrors((current) => ({ ...current, [name]: undefined }));
     setSubmitError('');
   };
 
   const validateField = (fieldName) => {
-    const validationErrors = validateRegistration(values);
-    setErrors((currentErrors) => ({
-      ...currentErrors,
-      [fieldName]: validationErrors[fieldName],
-    }));
+    const fieldErrors = validateRegistration(values);
+    setErrors((current) => ({ ...current, [fieldName]: fieldErrors[fieldName] }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
     const validationErrors = validateRegistration(values);
     setErrors(validationErrors);
     setSubmitError('');
     setRegisteredUser(null);
 
-    if (Object.keys(validationErrors).length > 0) {
-      return;
-    }
+    if (Object.keys(validationErrors).length > 0) return;
 
     setIsSubmitting(true);
-
     try {
       const response = await registerUser(values);
       setRegisteredUser(response.data.user);
@@ -70,7 +61,7 @@ const RegistrationForm = () => {
     } catch (error) {
       const apiError = getAuthApiError(error, 'Registration could not be completed.');
       setSubmitError(apiError.message);
-      setErrors((currentErrors) => ({ ...currentErrors, ...apiError.fieldErrors }));
+      setErrors((current) => ({ ...current, ...apiError.fieldErrors }));
     } finally {
       setIsSubmitting(false);
     }
@@ -81,33 +72,22 @@ const RegistrationForm = () => {
       <div className="mb-8">
         <p className="mb-2 text-sm font-semibold uppercase text-forest">Secure registration</p>
         <h1 className="text-3xl font-bold text-ink sm:text-4xl">Create your LexSecure account</h1>
-        <p className="mt-3 max-w-xl text-base leading-7 text-gray-600">
+        <p className="mt-3 leading-7 text-gray-600">
           Register as a client seeking legal support or as a lawyer offering consultations.
         </p>
       </div>
 
       {registeredUser ? (
-        <div
-          className="mb-6 border border-emerald-300 bg-emerald-50 p-4 text-emerald-900"
-          role="status"
-        >
+        <div className="mb-6 border border-emerald-300 bg-emerald-50 p-4 text-emerald-900" role="status">
           <div className="flex gap-3">
-            <CheckCircle2 aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0" />
-            <div>
-              <p className="font-semibold">Account created successfully</p>
-              <p className="mt-1 text-sm">
-                {registeredUser.fullName} is registered as a {registeredUser.role}.
-              </p>
-            </div>
+            <CheckCircle2 aria-hidden="true" className="h-5 w-5 shrink-0" />
+            <p><strong>Account created.</strong> {registeredUser.fullName} is registered as a {registeredUser.role}.</p>
           </div>
         </div>
       ) : null}
 
       {submitError ? (
-        <div
-          className="mb-6 border border-red-300 bg-red-50 p-4 text-sm text-red-800"
-          role="alert"
-        >
+        <div className="mb-6 border border-red-300 bg-red-50 p-4 text-sm text-red-800" role="alert">
           <div className="flex gap-2">
             <AlertCircle aria-hidden="true" className="h-5 w-5 shrink-0" />
             <p>{submitError}</p>
@@ -117,14 +97,9 @@ const RegistrationForm = () => {
 
       <form className="space-y-5" noValidate onSubmit={handleSubmit}>
         <div>
-          <label className="mb-2 block text-sm font-semibold text-ink" htmlFor="fullName">
-            Full name
-          </label>
+          <label className="mb-2 block text-sm font-semibold text-ink" htmlFor="fullName">Full name</label>
           <div className="relative">
-            <UserRound
-              aria-hidden="true"
-              className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-gray-500"
-            />
+            <UserRound aria-hidden="true" className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-gray-500" />
             <input
               autoComplete="name"
               className="form-input"
@@ -144,14 +119,9 @@ const RegistrationForm = () => {
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-semibold text-ink" htmlFor="email">
-            Email address
-          </label>
+          <label className="mb-2 block text-sm font-semibold text-ink" htmlFor="email">Email address</label>
           <div className="relative">
-            <Mail
-              aria-hidden="true"
-              className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-gray-500"
-            />
+            <Mail aria-hidden="true" className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-gray-500" />
             <input
               autoCapitalize="none"
               autoComplete="email"
@@ -173,26 +143,16 @@ const RegistrationForm = () => {
         </div>
 
         <fieldset>
-          <legend className="mb-2 block text-sm font-semibold text-ink">Account type</legend>
-          <div className="grid grid-cols-2 gap-2" aria-describedby={errors.role ? 'role-error' : undefined}>
+          <legend className="mb-2 text-sm font-semibold text-ink">Account type</legend>
+          <div className="grid grid-cols-2 gap-2">
             {[
               { value: 'client', label: 'Client', Icon: UserRound },
               { value: 'lawyer', label: 'Lawyer', Icon: BriefcaseBusiness },
             ].map(({ value, label, Icon }) => (
-              <label
-                className={`role-option ${values.role === value ? 'role-option-selected' : ''}`}
-                key={value}
-              >
-                <input
-                  checked={values.role === value}
-                  className="sr-only"
-                  name="role"
-                  onChange={updateField}
-                  type="radio"
-                  value={value}
-                />
+              <label className={`role-option ${values.role === value ? 'role-option-selected' : ''}`} key={value}>
+                <input checked={values.role === value} className="sr-only" name="role" onChange={updateField} type="radio" value={value} />
                 <Icon aria-hidden="true" className="h-5 w-5" />
-                <span>{label}</span>
+                {label}
               </label>
             ))}
           </div>
@@ -200,104 +160,54 @@ const RegistrationForm = () => {
         </fieldset>
 
         <div className="grid gap-5 sm:grid-cols-2">
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-ink" htmlFor="password">
-              Password
-            </label>
-            <div className="relative">
-              <LockKeyhole
-                aria-hidden="true"
-                className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-gray-500"
-              />
-              <input
-                autoComplete="new-password"
-                className="form-input pr-11"
-                id="password"
-                maxLength={128}
-                name="password"
-                onBlur={() => validateField('password')}
-                onChange={updateField}
-                placeholder="At least 12 characters"
-                type={showPassword ? 'text' : 'password'}
-                value={values.password}
-                aria-describedby={errors.password ? 'password-error' : 'password-help'}
-                aria-invalid={Boolean(errors.password)}
-              />
-              <button
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                className="absolute right-2 top-2.5 grid h-8 w-8 place-items-center text-gray-600 hover:text-ink focus:outline-none focus:ring-2 focus:ring-forest"
-                onClick={() => setShowPassword((currentValue) => !currentValue)}
-                title={showPassword ? 'Hide password' : 'Show password'}
-                type="button"
-              >
-                {showPassword ? (
-                  <EyeOff aria-hidden="true" className="h-5 w-5" />
-                ) : (
-                  <Eye aria-hidden="true" className="h-5 w-5" />
-                )}
-              </button>
+          {[
+            { name: 'password', label: 'Password', placeholder: 'At least 12 characters' },
+            { name: 'confirmPassword', label: 'Confirm password', placeholder: 'Repeat your password' },
+          ].map(({ name, label, placeholder }) => (
+            <div key={name}>
+              <label className="mb-2 block text-sm font-semibold text-ink" htmlFor={name}>{label}</label>
+              <div className="relative">
+                <LockKeyhole aria-hidden="true" className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-gray-500" />
+                <input
+                  autoComplete="new-password"
+                  className="form-input pr-11"
+                  id={name}
+                  maxLength={128}
+                  name={name}
+                  onBlur={() => validateField(name)}
+                  onChange={updateField}
+                  placeholder={placeholder}
+                  type={showPassword ? 'text' : 'password'}
+                  value={values[name]}
+                  aria-describedby={errors[name] ? `${name}-error` : undefined}
+                  aria-invalid={Boolean(errors[name])}
+                />
+                {name === 'password' ? (
+                  <button
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="absolute right-2 top-2.5 grid h-8 w-8 place-items-center text-gray-600 focus:outline-none focus:ring-2 focus:ring-forest"
+                    onClick={() => setShowPassword((current) => !current)}
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                    type="button"
+                  >
+                    {showPassword ? <EyeOff aria-hidden="true" className="h-5 w-5" /> : <Eye aria-hidden="true" className="h-5 w-5" />}
+                  </button>
+                ) : null}
+              </div>
+              <FieldError id={`${name}-error`} message={errors[name]} />
             </div>
-            {errors.password ? (
-              <FieldError id="password-error" message={errors.password} />
-            ) : (
-              <p id="password-help" className="mt-1.5 text-xs leading-5 text-gray-500">
-                Use uppercase, lowercase, a number, and a symbol.
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label
-              className="mb-2 block text-sm font-semibold text-ink"
-              htmlFor="confirmPassword"
-            >
-              Confirm password
-            </label>
-            <div className="relative">
-              <LockKeyhole
-                aria-hidden="true"
-                className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-gray-500"
-              />
-              <input
-                autoComplete="new-password"
-                className="form-input"
-                id="confirmPassword"
-                maxLength={128}
-                name="confirmPassword"
-                onBlur={() => validateField('confirmPassword')}
-                onChange={updateField}
-                placeholder="Repeat your password"
-                type={showPassword ? 'text' : 'password'}
-                value={values.confirmPassword}
-                aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined}
-                aria-invalid={Boolean(errors.confirmPassword)}
-              />
-            </div>
-            <FieldError id="confirmPassword-error" message={errors.confirmPassword} />
-          </div>
+          ))}
         </div>
 
-        <button
-          className="flex h-12 w-full items-center justify-center gap-2 bg-forest px-5 font-semibold text-white transition-colors hover:bg-forest-dark focus:outline-none focus:ring-2 focus:ring-forest focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={isSubmitting}
-          type="submit"
-        >
-          {isSubmitting ? (
-            <>
-              <LoaderCircle aria-hidden="true" className="h-5 w-5 animate-spin" />
-              Creating account
-            </>
-          ) : (
-            'Create account'
-          )}
+        <button className="flex h-12 w-full items-center justify-center gap-2 bg-forest px-5 font-semibold text-white hover:bg-forest-dark disabled:opacity-60" disabled={isSubmitting} type="submit">
+          {isSubmitting ? <LoaderCircle aria-hidden="true" className="h-5 w-5 animate-spin" /> : null}
+          {isSubmitting ? 'Creating account' : 'Create account'}
         </button>
       </form>
 
       <p className="mt-7 border-t border-line pt-6 text-center text-sm text-gray-600">
         Already registered?{' '}
-        <Link className="font-semibold text-forest underline-offset-4 hover:underline" to="/login">
-          Sign in
-        </Link>
+        <Link className="font-semibold text-forest hover:underline" to="/login">Sign in</Link>
       </p>
     </div>
   );

@@ -29,7 +29,6 @@ const AuthLayout = ({ children, securityMessage }) => (
         <p className="relative z-10 mt-8 hidden text-xs text-gray-400 lg:block">
           LexSecure university coursework project
         </p>
-
         <div
           aria-hidden="true"
           className="absolute bottom-0 right-0 h-48 w-48 translate-x-1/3 translate-y-1/3 border-[32px] border-accent/60"

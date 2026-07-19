@@ -9,8 +9,12 @@ import { helmetOptions } from './config/helmet.config.js';
 import { createSessionOptions } from './config/session.config.js';
 import { errorMiddleware } from './middleware/error.middleware.js';
 import { notFoundMiddleware } from './middleware/not-found.middleware.js';
+import adminLawyerProfileRoutes from './routes/admin-lawyer-profile.routes.js';
+import appointmentRoutes from './routes/appointment.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import healthRoutes from './routes/health.routes.js';
+import lawyerProfileRoutes from './routes/lawyer-profile.routes.js';
+import notificationRoutes from './routes/notification.routes.js';
 
 const app = express();
 
@@ -29,6 +33,7 @@ app.use(cors(corsOptions));
  */
 app.use(express.json({ limit: appConfig.jsonBodyLimit }));
 app.use(express.urlencoded({ extended: false, limit: appConfig.jsonBodyLimit }));
+app.use(session(createSessionOptions()));
 
 /*
  * Sessions are stored in MongoDB so authentication state is not kept in memory.
@@ -37,6 +42,10 @@ app.use(express.urlencoded({ extended: false, limit: appConfig.jsonBodyLimit }))
 app.use(session(createSessionOptions()));
 
 app.use('/api/auth', authRoutes);
+app.use('/api/admin/lawyer-profiles', adminLawyerProfileRoutes);
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/lawyer-profiles', lawyerProfileRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use('/api', healthRoutes);
 
 app.use(notFoundMiddleware);

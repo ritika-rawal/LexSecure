@@ -1,6 +1,11 @@
 import { Router } from 'express';
 
-import { getCurrentUser, loginUser, logoutUser, registerUser } from '../controllers/auth.controller.js';
+import {
+  getCurrentUser,
+  loginUser,
+  logoutUser,
+  registerUser,
+} from '../controllers/auth.controller.js';
 import { requireAuthentication } from '../middleware/auth.middleware.js';
 import { validateRequest } from '../middleware/validate-request.middleware.js';
 import { asyncHandler } from '../utils/async-handler.js';

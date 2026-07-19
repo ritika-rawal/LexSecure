@@ -6,11 +6,7 @@ import { getRoleHomePath } from '../utils/roleHomePath.js';
 const PublicOnlyRoute = () => {
   const { user } = useAuth();
 
-  if (user) {
-    return <Navigate replace to={getRoleHomePath(user.role)} />;
-  }
-
-  return <Outlet />;
+  return user ? <Navigate replace to={getRoleHomePath(user.role)} /> : <Outlet />;
 };
 
 export default PublicOnlyRoute;

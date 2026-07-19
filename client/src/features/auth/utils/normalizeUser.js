@@ -1,4 +1,4 @@
-const ALLOWED_ROLES = new Set(['client', 'lawyer', 'admin']);
+import { USER_ROLE_VALUES } from '../constants/userRoles.js';
 
 export const normalizeUser = (user) => {
   if (
@@ -6,7 +6,7 @@ export const normalizeUser = (user) => {
     typeof user.id !== 'string' ||
     typeof user.fullName !== 'string' ||
     typeof user.email !== 'string' ||
-    !ALLOWED_ROLES.has(user.role)
+    !USER_ROLE_VALUES.includes(user.role)
   ) {
     throw new Error('The authentication response contains invalid user data.');
   }

@@ -75,11 +75,7 @@ export const loginUser = async (req, res) => {
   }
 
   await regenerateSession(req);
-
-  req.session.user = {
-    id: user.id,
-    role: user.role,
-  };
+  req.session.user = { id: user.id, role: user.role };
 
   user.lastLoginAt = new Date();
   await user.save();
@@ -88,15 +84,12 @@ export const loginUser = async (req, res) => {
   res.status(200).json({
     status: 'success',
     message: 'User logged in successfully.',
-    data: {
-      user: buildSafeUserResponse(user),
-    },
+    data: { user: buildSafeUserResponse(user) },
   });
 };
 
 export const logoutUser = async (req, res) => {
   await destroySession(req);
-
   res.clearCookie(SESSION_COOKIE_NAME, sessionCookieOptions);
   res.status(204).send();
 };
@@ -104,8 +97,6 @@ export const logoutUser = async (req, res) => {
 export const getCurrentUser = async (req, res) => {
   res.status(200).json({
     status: 'success',
-    data: {
-      user: req.user,
-    },
+    data: { user: req.user },
   });
 };

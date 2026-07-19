@@ -12,11 +12,6 @@ const createAuthenticationError = () => {
   return error;
 };
 
-const invalidateSession = async (req, res) => {
-  await destroySession(req);
-  res.clearCookie(SESSION_COOKIE_NAME, sessionCookieOptions);
-};
-
 export const requireAuthentication = async (req, res, next) => {
   const sessionUserId = req.session?.user?.id;
 
@@ -25,21 +20,19 @@ export const requireAuthentication = async (req, res, next) => {
   }
 
   if (!mongoose.isValidObjectId(sessionUserId)) {
-    await invalidateSession(req, res);
+    await destroySession(req);
+    res.clearCookie(SESSION_COOKIE_NAME, sessionCookieOptions);
     throw createAuthenticationError();
   }
 
   const user = await User.findById(sessionUserId);
 
   if (!user || !user.isActive) {
-    await invalidateSession(req, res);
+    await destroySession(req);
+    res.clearCookie(SESSION_COOKIE_NAME, sessionCookieOptions);
     throw createAuthenticationError();
   }
 
-  /*
-   * Authorization uses the current database role rather than session.role.
-   * Role changes therefore take effect without waiting for session expiry.
-   */
   req.user = buildSafeUserResponse(user);
   next();
 };

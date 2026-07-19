@@ -39,7 +39,6 @@ export const AuthProvider = ({ children }) => {
     };
 
     restoreSession();
-
     return () => controller.abort();
   }, []);
 

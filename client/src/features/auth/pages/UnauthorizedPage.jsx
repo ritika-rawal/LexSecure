@@ -16,10 +16,7 @@ const UnauthorizedPage = () => {
         <p className="mt-4 leading-7 text-gray-600">
           Your current account role does not have permission to view this page.
         </p>
-        <Link
-          className="mt-7 inline-flex h-11 items-center bg-forest px-5 font-semibold text-white hover:bg-forest-dark focus:outline-none focus:ring-2 focus:ring-forest focus:ring-offset-2"
-          to={getRoleHomePath(user.role)}
-        >
+        <Link className="mt-7 inline-flex h-11 items-center bg-forest px-5 font-semibold text-white hover:bg-forest-dark" to={getRoleHomePath(user.role)}>
           Return to account
         </Link>
       </div>
