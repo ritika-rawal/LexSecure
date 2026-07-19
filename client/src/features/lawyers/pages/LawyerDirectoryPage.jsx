@@ -13,8 +13,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import LogoutButton from '../../auth/components/LogoutButton.jsx';
 import { getAuthApiError } from '../../auth/utils/apiError.js';
+import AuthenticatedHeaderActions from '../../notifications/components/AuthenticatedHeaderActions.jsx';
 import { getPublicLawyerProfiles } from '../api/publicLawyer.api.js';
 import LawyerDirectoryCard from '../components/LawyerDirectoryCard.jsx';
 import { validateSpecializationFilter } from '../utils/publicLawyer.js';
@@ -110,7 +110,7 @@ const LawyerDirectoryPage = () => {
             </span>
             <span className="text-lg font-bold">LexSecure</span>
           </div>
-          <LogoutButton />
+          <AuthenticatedHeaderActions />
         </div>
       </header>
 

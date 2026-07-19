@@ -4,9 +4,11 @@ import {
   APPOINTMENT_DURATION_LIMITS_MS,
   APPOINTMENT_STATUS,
 } from '../constants/appointment.js';
+import { NOTIFICATION_TYPES } from '../constants/notification.js';
 import { Appointment } from '../models/Appointment.model.js';
 import { LawyerProfile } from '../models/LawyerProfile.model.js';
 import { User } from '../models/User.model.js';
+import { recordAppointmentNotification } from './notification.service.js';
 import {
   buildReservedTimeBlocks,
   getWeekDayForLocalDate,
@@ -31,6 +33,19 @@ const createConflictError = () => {
   const error = new Error('The selected appointment time is no longer available.');
   error.statusCode = 409;
   return error;
+};
+
+const recordNotificationWithoutBlockingAppointment = async (notification) => {
+  try {
+    await recordAppointmentNotification(notification);
+  } catch (error) {
+    /*
+     * A secondary dashboard alert must not turn a completed appointment
+     * mutation into a misleading API failure. Idempotent event keys allow a
+     * future retry or reconciliation process without duplicate notifications.
+     */
+    console.error('Appointment notification could not be recorded.', error.message);
+  }
 };
 
 const resolveAppointmentSlot = ({
@@ -143,7 +158,7 @@ export const createAppointment = async ({ clientId, appointmentData }) => {
   }
 
   try {
-    return await Appointment.create({
+    const appointment = await Appointment.create({
       client: clientId,
       lawyer: profile.user._id,
       lawyerProfile: profile._id,
@@ -155,6 +170,14 @@ export const createAppointment = async ({ clientId, appointmentData }) => {
       reservedTimeBlocks,
       isSlotReserved: true,
     });
+
+    await recordNotificationWithoutBlockingAppointment({
+      recipientId: appointment.lawyer,
+      appointmentId: appointment._id,
+      type: NOTIFICATION_TYPES.APPOINTMENT_CREATED,
+    });
+
+    return appointment;
   } catch (error) {
     if (error.code === 11000) {
       throw createConflictError();
@@ -224,6 +247,7 @@ export const cancelAppointment = async ({
       [ownershipField]: userId,
       status: { $in: allowedStatuses },
       startsAt: { $gt: new Date() },
+      isSlotReserved: true,
     },
     {
       $set: {
@@ -244,6 +268,18 @@ export const cancelAppointment = async ({
     .exec();
 
   if (appointment) {
+    const recipientId =
+      userRole === USER_ROLES.CLIENT
+        ? appointment.lawyer._id
+        : appointment.client._id;
+
+    await recordNotificationWithoutBlockingAppointment({
+      recipientId,
+      appointmentId: appointment._id,
+      type: NOTIFICATION_TYPES.APPOINTMENT_CANCELLED,
+      eventSequence: appointment.rescheduleCount ?? 0,
+    });
+
     return appointment;
   }
 
@@ -280,7 +316,7 @@ export const rescheduleAppointment = async ({
   const appointment = await Appointment.findOne({
     _id: appointmentId,
     client: clientId,
-  }).select('lawyer lawyerProfile startsAt endsAt status');
+  }).select('lawyer lawyerProfile startsAt endsAt status +isSlotReserved');
 
   if (!appointment) {
     throw createAppointmentNotFoundError();
@@ -298,6 +334,12 @@ export const rescheduleAppointment = async ({
 
   if (appointment.startsAt.getTime() <= Date.now()) {
     throw createInvalidDecisionError('Past appointments cannot be rescheduled.');
+  }
+
+  if (!appointment.isSlotReserved) {
+    throw createInvalidDecisionError(
+      'This appointment no longer has an active schedule reservation.',
+    );
   }
 
   const profile = await LawyerProfile.findOne({
@@ -357,6 +399,7 @@ export const rescheduleAppointment = async ({
           $in: [APPOINTMENT_STATUS.PENDING, APPOINTMENT_STATUS.APPROVED],
         },
         startsAt: appointment.startsAt,
+        isSlotReserved: true,
       },
       {
         $set: {
@@ -387,6 +430,13 @@ export const rescheduleAppointment = async ({
       );
     }
 
+    await recordNotificationWithoutBlockingAppointment({
+      recipientId: updatedAppointment.lawyer._id,
+      appointmentId: updatedAppointment._id,
+      type: NOTIFICATION_TYPES.APPOINTMENT_RESCHEDULED,
+      eventSequence: updatedAppointment.rescheduleCount ?? 0,
+    });
+
     return updatedAppointment;
   } catch (error) {
     if (error.code === 11000) {
@@ -411,7 +461,10 @@ export const reviewAppointment = async ({ lawyerId, appointmentId, decision }) =
     lawyer: lawyerId,
     status: APPOINTMENT_STATUS.PENDING,
     ...(decision === APPOINTMENT_STATUS.APPROVED
-      ? { startsAt: { $gt: new Date() } }
+      ? {
+          startsAt: { $gt: new Date() },
+          isSlotReserved: true,
+        }
       : {}),
   };
   const appointment = await Appointment.findOneAndUpdate(filter, update, {
@@ -423,13 +476,23 @@ export const reviewAppointment = async ({ lawyerId, appointmentId, decision }) =
     .exec();
 
   if (appointment) {
+    await recordNotificationWithoutBlockingAppointment({
+      recipientId: appointment.client._id,
+      appointmentId: appointment._id,
+      type:
+        decision === APPOINTMENT_STATUS.APPROVED
+          ? NOTIFICATION_TYPES.APPOINTMENT_APPROVED
+          : NOTIFICATION_TYPES.APPOINTMENT_REJECTED,
+      eventSequence: appointment.rescheduleCount ?? 0,
+    });
+
     return appointment;
   }
 
   const existingAppointment = await Appointment.findOne({
     _id: appointmentId,
     lawyer: lawyerId,
-  }).select('status startsAt');
+  }).select('status startsAt +isSlotReserved');
 
   if (!existingAppointment) {
     throw createAppointmentNotFoundError();
@@ -437,6 +500,15 @@ export const reviewAppointment = async ({ lawyerId, appointmentId, decision }) =
 
   if (existingAppointment.status !== APPOINTMENT_STATUS.PENDING) {
     throw createInvalidDecisionError('Only pending appointments can be reviewed.');
+  }
+
+  if (
+    decision === APPOINTMENT_STATUS.APPROVED
+    && !existingAppointment.isSlotReserved
+  ) {
+    throw createInvalidDecisionError(
+      'This appointment no longer has an active schedule reservation.',
+    );
   }
 
   throw createInvalidDecisionError('Past appointments cannot be approved.');

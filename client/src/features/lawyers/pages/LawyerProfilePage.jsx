@@ -3,8 +3,8 @@ import axios from 'axios';
 import { ArrowLeft, LoaderCircle, Scale } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import LogoutButton from '../../auth/components/LogoutButton.jsx';
 import { getAuthApiError } from '../../auth/utils/apiError.js';
+import AuthenticatedHeaderActions from '../../notifications/components/AuthenticatedHeaderActions.jsx';
 import { getCurrentLawyerProfile } from '../api/lawyerProfile.api.js';
 import LawyerProfileForm from '../components/LawyerProfileForm.jsx';
 import { APPROVAL_LABELS } from '../constants/profile.js';
@@ -54,7 +54,7 @@ const LawyerProfilePage = () => {
             </span>
             <span className="text-lg font-bold">LexSecure</span>
           </div>
-          <LogoutButton />
+          <AuthenticatedHeaderActions />
         </div>
       </header>
 

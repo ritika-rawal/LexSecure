@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import LogoutButton from '../../auth/components/LogoutButton.jsx';
+import AuthenticatedHeaderActions from '../../notifications/components/AuthenticatedHeaderActions.jsx';
 import { getAuthApiError } from '../../auth/utils/apiError.js';
 import {
   getPendingLawyerAppointments,
@@ -123,7 +123,7 @@ const LawyerAppointmentInboxPage = () => {
               <span className="text-xs text-gray-500">Lawyer workspace</span>
             </div>
           </div>
-          <LogoutButton />
+          <AuthenticatedHeaderActions />
         </div>
       </header>
 

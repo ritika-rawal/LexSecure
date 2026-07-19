@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import LogoutButton from '../components/LogoutButton.jsx';
+import AuthenticatedHeaderActions from '../../notifications/components/AuthenticatedHeaderActions.jsx';
 import { USER_ROLES } from '../constants/userRoles.js';
 import { useAuth } from '../hooks/useAuth.js';
 
@@ -31,7 +31,7 @@ const AccountPage = () => {
             </span>
             <span className="text-lg font-bold">LexSecure</span>
           </div>
-          <LogoutButton />
+          <AuthenticatedHeaderActions />
         </div>
       </header>
 

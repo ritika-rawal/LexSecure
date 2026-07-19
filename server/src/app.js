@@ -14,6 +14,7 @@ import appointmentRoutes from './routes/appointment.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import healthRoutes from './routes/health.routes.js';
 import lawyerProfileRoutes from './routes/lawyer-profile.routes.js';
+import notificationRoutes from './routes/notification.routes.js';
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin/lawyer-profiles', adminLawyerProfileRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/lawyer-profiles', lawyerProfileRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use('/api', healthRoutes);
 
 app.use(notFoundMiddleware);

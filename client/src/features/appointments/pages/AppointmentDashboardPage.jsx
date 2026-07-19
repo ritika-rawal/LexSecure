@@ -13,10 +13,10 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import LogoutButton from '../../auth/components/LogoutButton.jsx';
 import { USER_ROLES } from '../../auth/constants/userRoles.js';
 import { useAuth } from '../../auth/hooks/useAuth.js';
 import { getAuthApiError } from '../../auth/utils/apiError.js';
+import AuthenticatedHeaderActions from '../../notifications/components/AuthenticatedHeaderActions.jsx';
 import { getMyAppointments } from '../api/appointmentDashboard.api.js';
 import AppointmentHistoryFilters from '../components/AppointmentHistoryFilters.jsx';
 import DashboardAppointmentItem from '../components/DashboardAppointmentItem.jsx';
@@ -121,7 +121,7 @@ const AppointmentDashboardPage = () => {
               </span>
             </div>
           </div>
-          <LogoutButton />
+          <AuthenticatedHeaderActions />
         </div>
       </header>
 

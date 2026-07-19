@@ -173,6 +173,45 @@ appointmentSchema.pre('validate', function validateFutureStart(next) {
   next();
 });
 
+appointmentSchema.pre('findOneAndUpdate', function enforceStatusInvariants(next) {
+  const update = this.getUpdate() || {};
+  const changedFields = update.$set || update;
+  const terminalStatuses = [
+    APPOINTMENT_STATUS.REJECTED,
+    APPOINTMENT_STATUS.CANCELLED,
+    APPOINTMENT_STATUS.COMPLETED,
+  ];
+
+  /*
+   * Terminal appointments must release their unique schedule reservation.
+   * Keeping this invariant at the model boundary protects future update paths
+   * as the application grows.
+   */
+  if (
+    terminalStatuses.includes(changedFields.status)
+    && changedFields.isSlotReserved !== false
+  ) {
+    return next(
+      new Error('Terminal appointments must release their reserved time blocks.'),
+    );
+  }
+
+  if (
+    changedFields.status === APPOINTMENT_STATUS.CANCELLED
+    && (
+      !changedFields.cancellationReason
+      || !changedFields.cancelledByRole
+      || !changedFields.cancelledAt
+    )
+  ) {
+    return next(
+      new Error('Cancelled appointments require complete cancellation metadata.'),
+    );
+  }
+
+  return next();
+});
+
 /*
  * Schedule indexes support history queries. The unique multikey indexes reserve
  * every touched 15-minute block for both participants, closing the race between

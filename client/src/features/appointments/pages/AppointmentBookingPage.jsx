@@ -18,9 +18,9 @@ import {
 import { Link, useParams } from 'react-router-dom';
 
 import FieldError from '../../auth/components/FieldError.jsx';
-import LogoutButton from '../../auth/components/LogoutButton.jsx';
 import { getAuthApiError } from '../../auth/utils/apiError.js';
 import { getPublicLawyerProfile } from '../../lawyers/api/publicLawyer.api.js';
+import AuthenticatedHeaderActions from '../../notifications/components/AuthenticatedHeaderActions.jsx';
 import {
   formatConsultationFee,
   getLawyerInitials,
@@ -148,7 +148,7 @@ const AppointmentBookingPage = () => {
               <span className="text-xs text-gray-500">Secure consultation request</span>
             </div>
           </div>
-          <LogoutButton />
+          <AuthenticatedHeaderActions />
         </div>
       </header>
 

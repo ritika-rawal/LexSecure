@@ -12,8 +12,8 @@ import {
 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 
-import LogoutButton from '../../auth/components/LogoutButton.jsx';
 import { getAuthApiError } from '../../auth/utils/apiError.js';
+import AuthenticatedHeaderActions from '../../notifications/components/AuthenticatedHeaderActions.jsx';
 import { getPublicLawyerProfile } from '../api/publicLawyer.api.js';
 import {
   formatAvailabilityDay,
@@ -67,7 +67,7 @@ const PublicLawyerProfilePage = () => {
             </span>
             <span className="text-lg font-bold">LexSecure</span>
           </div>
-          <LogoutButton />
+          <AuthenticatedHeaderActions />
         </div>
       </header>
 
