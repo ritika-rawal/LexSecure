@@ -115,6 +115,17 @@ const appointmentSchema = new Schema(
       required: true,
       index: true,
     },
+    reservedTimeBlocks: {
+      type: [Date],
+      default: undefined,
+      select: false,
+    },
+    isSlotReserved: {
+      type: Boolean,
+      default: false,
+      required: true,
+      select: false,
+    },
   },
   {
     timestamps: true,
@@ -139,16 +150,33 @@ appointmentSchema.pre('validate', function validateFutureStart(next) {
 });
 
 /*
- * Arbitrary time-range overlap cannot be guaranteed by a MongoDB unique index.
- * These indexes support the transactional conflict checks added with booking.
+ * Schedule indexes support history queries. The unique multikey indexes reserve
+ * every touched 15-minute block for both participants, closing the race between
+ * the availability check and concurrent appointment creation.
  */
 appointmentSchema.index({ lawyer: 1, startsAt: 1, endsAt: 1, status: 1 });
 appointmentSchema.index({ client: 1, startsAt: -1, status: 1 });
 appointmentSchema.index({ lawyer: 1, startsAt: -1, status: 1 });
+appointmentSchema.index(
+  { lawyer: 1, reservedTimeBlocks: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { isSlotReserved: true },
+  },
+);
+appointmentSchema.index(
+  { client: 1, reservedTimeBlocks: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { isSlotReserved: true },
+  },
+);
 
 appointmentSchema.set('toJSON', {
   transform(document, returnedObject) {
     delete returnedObject.legalIssueSummary;
+    delete returnedObject.reservedTimeBlocks;
+    delete returnedObject.isSlotReserved;
     return returnedObject;
   },
 });

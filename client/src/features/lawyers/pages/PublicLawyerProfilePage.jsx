@@ -6,6 +6,7 @@ import {
   BriefcaseBusiness,
   CalendarClock,
   Clock3,
+  MoveRight,
   LoaderCircle,
   Scale,
 } from 'lucide-react';
@@ -184,6 +185,15 @@ const PublicLawyerProfilePage = () => {
                     <dd className="mt-1 break-words">{profile.timezone}</dd>
                   </div>
                 </dl>
+                {profile.weeklyAvailability.length > 0 ? (
+                  <Link
+                    className="mt-8 flex h-12 items-center justify-center gap-2 bg-forest px-5 text-sm font-semibold text-white hover:bg-forest-dark focus:outline-none focus:ring-2 focus:ring-forest focus:ring-offset-2"
+                    to={`/lawyers/${profile.id}/book`}
+                  >
+                    Request consultation
+                    <MoveRight aria-hidden="true" className="h-4 w-4" />
+                  </Link>
+                ) : null}
               </aside>
             </div>
           </article>
