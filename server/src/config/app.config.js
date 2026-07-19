@@ -32,6 +32,23 @@ const parseAllowedOrigins = (value) => {
 const nodeEnv = process.env.NODE_ENV || 'development';
 const mongodbUri = process.env.MONGODB_URI;
 const sessionSecret = process.env.SESSION_SECRET;
+const documentEncryptionKey = process.env.DOCUMENT_ENCRYPTION_KEY;
+
+const parseDocumentEncryptionKey = (value) => {
+  if (!value) {
+    throw new Error('DOCUMENT_ENCRYPTION_KEY is required.');
+  }
+
+  const key = Buffer.from(value, 'base64');
+
+  if (key.length !== 32 || key.toString('base64') !== value) {
+    throw new Error(
+      'DOCUMENT_ENCRYPTION_KEY must be exactly 32 random bytes encoded as base64.',
+    );
+  }
+
+  return key;
+};
 
 export const appConfig = Object.freeze({
   env: nodeEnv,
@@ -42,4 +59,5 @@ export const appConfig = Object.freeze({
   mongodbUri,
   sessionSecret,
   sessionMaxAgeMs: 1000 * 60 * 60,
+  documentEncryptionKey: parseDocumentEncryptionKey(documentEncryptionKey),
 });

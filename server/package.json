@@ -19,8 +19,9 @@
     "express": "^4.19.2",
     "express-session": "^1.18.0",
     "express-validator": "^7.2.0",
+    "file-type": "^22.0.1",
     "helmet": "^7.1.0",
-    "mongoose": "^8.5.0"
-  },
-  "devDependencies": {}
+    "mongoose": "^8.5.0",
+    "multer": "^2.2.0"
+  }
 }

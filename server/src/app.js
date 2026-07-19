@@ -12,6 +12,7 @@ import { notFoundMiddleware } from './middleware/not-found.middleware.js';
 import adminLawyerProfileRoutes from './routes/admin-lawyer-profile.routes.js';
 import appointmentRoutes from './routes/appointment.routes.js';
 import authRoutes from './routes/auth.routes.js';
+import documentRoutes from './routes/document.routes.js';
 import healthRoutes from './routes/health.routes.js';
 import lawyerProfileRoutes from './routes/lawyer-profile.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
@@ -42,6 +43,7 @@ app.use(session(createSessionOptions()));
 app.use(session(createSessionOptions()));
 
 app.use('/api/auth', authRoutes);
+app.use('/api', documentRoutes);
 app.use('/api/admin/lawyer-profiles', adminLawyerProfileRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/lawyer-profiles', lawyerProfileRoutes);
