@@ -1,6 +1,9 @@
-import { body } from 'express-validator';
+import { body, param, query } from 'express-validator';
 
-import { CONSULTATION_TYPE_VALUES } from '../constants/appointment.js';
+import {
+  APPOINTMENT_STATUS,
+  CONSULTATION_TYPE_VALUES,
+} from '../constants/appointment.js';
 import { TIME_24_HOUR_PATTERN } from '../utils/availability.js';
 import { isValidLocalDate } from '../utils/timezone.js';
 
@@ -58,4 +61,60 @@ export const createAppointmentValidator = [
     .trim()
     .isLength({ min: 20, max: 1000 })
     .withMessage('Legal issue summary must be between 20 and 1000 characters.'),
+];
+
+const ALLOWED_LAWYER_LIST_QUERY_FIELDS = new Set(['page', 'limit']);
+
+export const listLawyerAppointmentsValidator = [
+  query().custom((queryParameters) => {
+    const containsOnlyAllowedFields = Object.keys(queryParameters).every((key) =>
+      ALLOWED_LAWYER_LIST_QUERY_FIELDS.has(key),
+    );
+
+    if (!containsOnlyAllowedFields) {
+      throw new Error('Request contains unsupported query parameters.');
+    }
+
+    return true;
+  }),
+  query('page')
+    .optional()
+    .isInt({ min: 1, max: 10_000 })
+    .withMessage('Page must be between 1 and 10000.')
+    .toInt(),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 50 })
+    .withMessage('Limit must be between 1 and 50.')
+    .toInt(),
+];
+
+export const reviewAppointmentValidator = [
+  param('appointmentId')
+    .isMongoId()
+    .withMessage('Appointment ID must be a valid MongoDB identifier.'),
+  body().custom((requestBody) => {
+    const containsOnlyDecision =
+      requestBody
+      && typeof requestBody === 'object'
+      && !Array.isArray(requestBody)
+      && Object.keys(requestBody).length === 1
+      && Object.hasOwn(requestBody, 'decision');
+
+    if (!containsOnlyDecision) {
+      throw new Error('Request must contain only the appointment decision.');
+    }
+
+    return true;
+  }),
+  body('decision')
+    .isString()
+    .withMessage('Decision must be text.')
+    .trim()
+    .toLowerCase()
+    .isIn([
+      APPOINTMENT_STATUS.APPROVED,
+      APPOINTMENT_STATUS.REJECTED,
+    ])
+    .withMessage('Decision must be approved or rejected.'),
 ];

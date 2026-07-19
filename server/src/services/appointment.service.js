@@ -1,6 +1,9 @@
 import { LAWYER_APPROVAL_STATUS } from '../constants/lawyer-profile.js';
 import { USER_ROLES } from '../constants/user-roles.js';
-import { APPOINTMENT_DURATION_LIMITS_MS } from '../constants/appointment.js';
+import {
+  APPOINTMENT_DURATION_LIMITS_MS,
+  APPOINTMENT_STATUS,
+} from '../constants/appointment.js';
 import { Appointment } from '../models/Appointment.model.js';
 import { LawyerProfile } from '../models/LawyerProfile.model.js';
 import {
@@ -138,4 +141,89 @@ export const createAppointment = async ({ clientId, appointmentData }) => {
 
     throw error;
   }
+};
+
+const createAppointmentNotFoundError = () => {
+  const error = new Error('Appointment not found.');
+  error.statusCode = 404;
+  return error;
+};
+
+const createInvalidDecisionError = (message) => {
+  const error = new Error(message);
+  error.statusCode = 409;
+  return error;
+};
+
+export const listPendingLawyerAppointments = async ({ lawyerId, page, limit }) => {
+  const filter = {
+    lawyer: lawyerId,
+    status: APPOINTMENT_STATUS.PENDING,
+  };
+  const skip = (page - 1) * limit;
+  const [appointments, totalItems] = await Promise.all([
+    Appointment.find(filter)
+      .select('+legalIssueSummary')
+      .sort({ startsAt: 1, _id: 1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('client', 'fullName')
+      .exec(),
+    Appointment.countDocuments(filter),
+  ]);
+
+  return {
+    appointments,
+    pagination: {
+      page,
+      limit,
+      totalItems,
+      totalPages: Math.ceil(totalItems / limit),
+    },
+  };
+};
+
+export const reviewAppointment = async ({ lawyerId, appointmentId, decision }) => {
+  const update = {
+    $set: {
+      status: decision,
+      ...(decision === APPOINTMENT_STATUS.REJECTED
+        ? { isSlotReserved: false }
+        : {}),
+    },
+  };
+  const filter = {
+    _id: appointmentId,
+    lawyer: lawyerId,
+    status: APPOINTMENT_STATUS.PENDING,
+    ...(decision === APPOINTMENT_STATUS.APPROVED
+      ? { startsAt: { $gt: new Date() } }
+      : {}),
+  };
+  const appointment = await Appointment.findOneAndUpdate(filter, update, {
+    new: true,
+    runValidators: true,
+  })
+    .select('+legalIssueSummary')
+    .populate('client', 'fullName')
+    .exec();
+
+  if (appointment) {
+    return appointment;
+  }
+
+  const existingAppointment = await Appointment.findOne({
+    _id: appointmentId,
+    lawyer: lawyerId,
+  }).select('status startsAt');
+
+  if (!existingAppointment) {
+    throw createAppointmentNotFoundError();
+  }
+
+  if (existingAppointment.status !== APPOINTMENT_STATUS.PENDING) {
+    throw createInvalidDecisionError('Only pending appointments can be reviewed.');
+  }
+
+  throw createInvalidDecisionError('Past appointments cannot be approved.');
 };

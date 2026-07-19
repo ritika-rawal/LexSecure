@@ -15,6 +15,7 @@ import LawyerProfilePage from '../features/lawyers/pages/LawyerProfilePage.jsx';
 import LawyerDirectoryPage from '../features/lawyers/pages/LawyerDirectoryPage.jsx';
 import PublicLawyerProfilePage from '../features/lawyers/pages/PublicLawyerProfilePage.jsx';
 import AppointmentBookingPage from '../features/appointments/pages/AppointmentBookingPage.jsx';
+import LawyerAppointmentInboxPage from '../features/appointments/pages/LawyerAppointmentInboxPage.jsx';
 import LawyerReviewPage from '../features/admin/pages/LawyerReviewPage.jsx';
 
 const AppRoutes = () => {
@@ -51,6 +52,7 @@ const AppRoutes = () => {
       <Route element={<ProtectedRoute allowedRoles={[USER_ROLES.LAWYER]} />}>
         <Route path="/lawyer/account" element={<AccountPage />} />
         <Route path="/lawyer/profile" element={<LawyerProfilePage />} />
+        <Route path="/lawyer/appointments" element={<LawyerAppointmentInboxPage />} />
       </Route>
       <Route element={<ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]} />}>
         <Route path="/admin/lawyer-profiles" element={<LawyerReviewPage />} />
