@@ -8,6 +8,7 @@ import {
   CalendarX,
   Check,
   LoaderCircle,
+  MessageSquare,
   X,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -27,7 +28,10 @@ const NOTIFICATION_ICONS = Object.freeze({
   appointment_rejected: CalendarX,
   appointment_cancelled: CalendarX,
   appointment_rescheduled: CalendarClock,
+  secure_message_received: MessageSquare,
 });
+
+const UNREAD_REFRESH_INTERVAL_MS = 30_000;
 
 const formatNotificationTime = (value) => {
   const date = new Date(value);
@@ -67,7 +71,16 @@ const NotificationBell = () => {
     };
 
     loadUnreadCount();
-    return () => controller.abort();
+    const intervalId = window.setInterval(() => {
+      if (window.document.visibilityState === 'visible') {
+        loadUnreadCount();
+      }
+    }, UNREAD_REFRESH_INTERVAL_MS);
+
+    return () => {
+      controller.abort();
+      window.clearInterval(intervalId);
+    };
   }, []);
 
   useEffect(() => {

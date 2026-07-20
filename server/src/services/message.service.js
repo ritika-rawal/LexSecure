@@ -1,4 +1,5 @@
 import { APPOINTMENT_STATUS } from '../constants/appointment.js';
+import { NOTIFICATION_TYPES } from '../constants/notification.js';
 import { Appointment } from '../models/Appointment.model.js';
 import { Message } from '../models/Message.model.js';
 import {
@@ -6,6 +7,7 @@ import {
   encryptMessage,
 } from '../utils/message-crypto.js';
 import { buildSafeMessageResponse } from '../utils/safe-message.js';
+import { recordAppointmentNotification } from './notification.service.js';
 
 const createConversationNotFoundError = () => {
   const error = new Error('Appointment conversation not found.');
@@ -50,6 +52,27 @@ const getRecipientId = (appointment, senderId) => {
   }
 
   return appointment.client;
+};
+
+const recordMessageNotificationWithoutBlocking = async ({
+  recipientId,
+  appointmentId,
+  messageId,
+}) => {
+  try {
+    await recordAppointmentNotification({
+      recipientId,
+      appointmentId,
+      type: NOTIFICATION_TYPES.SECURE_MESSAGE_RECEIVED,
+      eventSequence: messageId.toString(),
+    });
+  } catch (error) {
+    /*
+     * The encrypted message is authoritative. A secondary dashboard alert
+     * must not make a successfully stored message appear to have failed.
+     */
+    console.error('Message notification could not be recorded.', error.message);
+  }
 };
 
 const decryptMessageBody = (message) =>
@@ -108,6 +131,11 @@ export const sendAppointmentMessage = async ({
     bodyLength: Array.from(body).length,
   });
 
+  await recordMessageNotificationWithoutBlocking({
+    recipientId,
+    appointmentId: appointment._id,
+    messageId: message._id,
+  });
   await message.populate('sender', 'fullName role');
 
   return buildSafeMessageResponse(message, body);

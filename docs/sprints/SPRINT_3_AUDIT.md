@@ -65,6 +65,11 @@ evidence are not yet complete.
 - Unicode-aware 2,000-character composer validation.
 - Explicit loading, empty, retry, refresh, sending, and unavailable states.
 - React text-node rendering with no HTML interpretation sink.
+- Generic recipient-only notification for each successfully stored message.
+- Message notifications exclude body text, legal context, and participant
+  names.
+- Message-ID-based notification event keys prevent duplicate alerts.
+- Visible-page unread-count refresh every 30 seconds.
 
 ## 3. API Surface
 
@@ -108,6 +113,10 @@ The upload request uses `multipart/form-data` with exactly one file in the
 | Control-character checks | Unsafe C0 controls are rejected while line breaks remain allowed | Reduces parser and display ambiguity |
 | Conversation no-store | Message responses disable browser caching | Reduces confidential history persistence in shared caches |
 | Generic authorization failure | Non-participants receive conversation not found | Reduces appointment and conversation enumeration |
+| Confidential alerts | Notification content contains no message preview or sender identity | Reduces disclosure through notification surfaces |
+| Recipient-scoped alerts | Recipient comes from the authorized appointment pair | Prevents attacker-selected notification targets |
+| Idempotent message events | Message ID forms part of the unique notification key | Prevents duplicate alerts for one stored message |
+| Non-blocking alert delivery | Notification failure does not change message-send success | Prevents misleading retries and duplicate messages |
 
 ## 5. Files Added or Modified in This Increment
 
@@ -150,6 +159,10 @@ The upload request uses `multipart/form-data` with exactly one file in the
 | `client/src/features/messages/utils/message.js` | Unicode-aware validation and date formatting |
 | `client/src/features/messages/components/AppointmentMessages.jsx` | Role-aware escaped-text conversation interface |
 | `client/src/features/appointments/components/DashboardAppointmentItem.jsx` | Integrates messaging into each appointment view |
+| `server/src/constants/notification.js` | Adds the secure-message notification type |
+| `server/src/services/notification.service.js` | Defines generic confidential-safe message alert content |
+| `server/src/services/message.service.js` | Records an idempotent recipient alert after message storage |
+| `client/src/features/notifications/components/NotificationBell.jsx` | Maps message alerts and refreshes unread counts while visible |
 
 ## 6. Known Gaps and Audit Targets
 
@@ -171,7 +184,8 @@ The upload request uses `multipart/form-data` with exactly one file in the
 | Messaging UI | React escaped-text interface implemented | Verify XSS payloads remain text in every supported browser |
 | Message abuse | Length is bounded but send volume is not | Add message-specific throttling, quotas, and abnormal-volume monitoring |
 | Message status | No read receipts or unread state | Add only if required, with recipient-scoped updates |
-| Message alerts | No new-message notification exists | Add generic notifications that never include message content |
+| Message alerts | Generic no-preview notification implemented | Verify recipient scope, idempotency, and polling behavior |
+| Alert consistency | Notification writes are intentionally non-blocking | Add reconciliation for rare message-without-alert failures |
 | Message key lifecycle | Separate environment key is required | Define rotation, key versioning, backup, and recovery |
 | Message retention | Messages are immutable indefinitely | Define retention and legally authorized deletion policy |
 
@@ -207,6 +221,15 @@ open. They have not been silently fixed as part of this feature increment.
 19. Confirm MongoDB and API logs do not contain plaintext message bodies.
 20. Render XSS payload strings through the React UI and confirm they remain
     escaped text.
+21. Send a message and confirm exactly one recipient notification is created.
+22. Confirm the notification never includes message text, sender name, or legal
+    summary.
+23. Attempt to read and mark the message notification using an unrelated
+    account.
+24. Retry the same notification event and confirm the unique event key prevents
+    duplication.
+25. Confirm the unread badge refreshes while the page is visible and stops
+    polling after logout or component unmount.
 
 Only synthetic legal documents should be used during testing.
 
@@ -225,18 +248,20 @@ Only synthetic legal documents should be used during testing.
 - Rejected send request for a non-approved appointment.
 - Client and lawyer conversation views showing role-aware alignment.
 - Harmless XSS marker text visibly rendered without DOM execution.
+- Notification database/API evidence showing generic content only.
+- Recipient-versus-unrelated-user notification authorization attempt.
+- One message record mapped to one notification event.
 - Git commit containing this backend increment and its audit report.
 
 ## 9. Sprint 3 Work Remaining
 
-1. Add generic new-message notifications without confidential previews.
-2. Implement append-only security audit logging.
-3. Build the administrator audit-log view.
-4. Add approved coursework features such as reviews only after core
+1. Implement append-only security audit logging.
+2. Build the administrator audit-log view.
+3. Add approved coursework features such as reviews only after core
    confidential workflows are secure.
-5. Perform the Sprint 3 security-hardening pass.
-6. Execute the dynamic audit matrix and attach evidence.
-7. Convert this report from in-progress to retrospective complete.
+4. Perform the Sprint 3 security-hardening pass.
+5. Execute the dynamic audit matrix and attach evidence.
+6. Convert this report from in-progress to retrospective complete.
 
 ## 10. Current Assessment
 
@@ -248,7 +273,7 @@ integrity verification, safe response mapping, and escaped-text rendering.
 
 The main remaining risks are malicious document content, aggregate storage
 exhaustion, message-volume abuse, missing CSRF and rate-limit controls, key
-lifecycle management, retention, audit logging, absent message notifications,
-and unexecuted multi-role dynamic testing. Sprint 3 must remain open until those
-items are either implemented or formally recorded as accepted project
+lifecycle management, retention, audit logging, notification reconciliation,
+and unexecuted multi-role dynamic testing. Sprint 3 must remain open until
+those items are either implemented or formally recorded as accepted project
 limitations.
