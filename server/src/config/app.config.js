@@ -33,17 +33,18 @@ const nodeEnv = process.env.NODE_ENV || 'development';
 const mongodbUri = process.env.MONGODB_URI;
 const sessionSecret = process.env.SESSION_SECRET;
 const documentEncryptionKey = process.env.DOCUMENT_ENCRYPTION_KEY;
+const messageEncryptionKey = process.env.MESSAGE_ENCRYPTION_KEY;
 
-const parseDocumentEncryptionKey = (value) => {
+const parseEncryptionKey = (value, variableName) => {
   if (!value) {
-    throw new Error('DOCUMENT_ENCRYPTION_KEY is required.');
+    throw new Error(`${variableName} is required.`);
   }
 
   const key = Buffer.from(value, 'base64');
 
   if (key.length !== 32 || key.toString('base64') !== value) {
     throw new Error(
-      'DOCUMENT_ENCRYPTION_KEY must be exactly 32 random bytes encoded as base64.',
+      `${variableName} must be exactly 32 random bytes encoded as base64.`,
     );
   }
 
@@ -59,5 +60,12 @@ export const appConfig = Object.freeze({
   mongodbUri,
   sessionSecret,
   sessionMaxAgeMs: 1000 * 60 * 60,
-  documentEncryptionKey: parseDocumentEncryptionKey(documentEncryptionKey),
+  documentEncryptionKey: parseEncryptionKey(
+    documentEncryptionKey,
+    'DOCUMENT_ENCRYPTION_KEY',
+  ),
+  messageEncryptionKey: parseEncryptionKey(
+    messageEncryptionKey,
+    'MESSAGE_ENCRYPTION_KEY',
+  ),
 });

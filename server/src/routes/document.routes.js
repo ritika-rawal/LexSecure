@@ -21,13 +21,9 @@ import {
 
 const router = Router();
 
-router.use(
-  asyncHandler(requireAuthentication),
-  authorizeRoles(USER_ROLES.CLIENT, USER_ROLES.LAWYER),
-);
-
 router.post(
   '/appointments/:appointmentId/documents',
+  asyncHandler(requireAuthentication),
   authorizeRoles(USER_ROLES.CLIENT),
   appointmentDocumentParamValidator,
   validateRequest,
@@ -37,6 +33,8 @@ router.post(
 
 router.get(
   '/appointments/:appointmentId/documents',
+  asyncHandler(requireAuthentication),
+  authorizeRoles(USER_ROLES.CLIENT, USER_ROLES.LAWYER),
   listAppointmentDocumentsValidator,
   validateRequest,
   asyncHandler(listAppointmentDocuments),
@@ -44,6 +42,8 @@ router.get(
 
 router.get(
   '/documents/:documentId/download',
+  asyncHandler(requireAuthentication),
+  authorizeRoles(USER_ROLES.CLIENT, USER_ROLES.LAWYER),
   downloadDocumentValidator,
   validateRequest,
   asyncHandler(downloadDocument),

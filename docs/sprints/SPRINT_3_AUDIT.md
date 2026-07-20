@@ -7,19 +7,23 @@
 | Sprint | Sprint 3 - Documents, Communication, and Administration |
 | Goal | Deliver secure collaboration between clients and lawyers |
 | Functional status | In progress |
-| Current increment | Encrypted legal-document workflow |
+| Current increment | Encrypted documents and messaging backend |
 | Security status | Design review complete for this increment; dynamic audit remains |
 | Audit type | Continuous white-box review |
 
-Sprint 3 has started with the confidential-document workflow. An authenticated
+Sprint 3 started with the confidential-document workflow. An authenticated
 client can upload an approved document type from an active appointment. The
 appointment's client and assigned lawyer can list and download those documents
 from their role-aware dashboards. Stored files are encrypted and kept outside
 the public frontend tree.
 
-This report is intentionally marked in progress. Messaging, audit logging,
-administration improvements, security hardening, and dynamic security evidence
-are not yet complete.
+The second increment adds an encrypted appointment-messaging backend. Only the
+appointment's client and assigned lawyer can access its conversation, and new
+messages are accepted only after the lawyer approves the appointment.
+
+This report is intentionally marked in progress. The messaging frontend, audit
+logging, administration improvements, security hardening, and dynamic security
+evidence are not yet complete.
 
 ## 2. Delivered Functionality
 
@@ -41,6 +45,18 @@ are not yet complete.
 - Upload progress with accessible success and failure feedback.
 - Authenticated browser downloads using temporary object URLs.
 - Document empty, loading, retry, pagination, and download states.
+- Immutable appointment-message model with server-derived recipients.
+- Participant-only message creation and history access.
+- Approved-appointment requirement for sending new messages.
+- AES-256-GCM message encryption using a separate application key.
+- Authenticated encryption context binds ciphertext to the appointment,
+  sender, and recipient.
+- Strict message-body, identifier, query-field, and pagination validation.
+- Paginated newest-first message history with private, non-cacheable responses.
+- Safe response mapping that excludes ciphertext, IVs, tags, and recipient
+  storage metadata.
+- Endpoint-level authorization on shared `/api` routers to prevent unrelated
+  API requests being intercepted.
 
 ## 3. API Surface
 
@@ -49,6 +65,8 @@ are not yet complete.
 | `POST` | `/api/appointments/:appointmentId/documents` | Upload one document | Owning client |
 | `GET` | `/api/appointments/:appointmentId/documents` | List appointment documents | Assigned client or lawyer |
 | `GET` | `/api/documents/:documentId/download` | Download and decrypt a document | Assigned client or lawyer |
+| `POST` | `/api/appointments/:appointmentId/messages` | Send one message | Assigned client or lawyer; approved appointment |
+| `GET` | `/api/appointments/:appointmentId/messages` | List message history | Assigned client or lawyer |
 
 The upload request uses `multipart/form-data` with exactly one file in the
 `document` field and no additional form fields.
@@ -72,6 +90,16 @@ The upload request uses `multipart/form-data` with exactly one file in the
 | Safe downloads | Authorization precedes file read and decryption | Prevents unauthorized filesystem access |
 | Cache prevention | `Cache-Control: private, no-store` | Reduces confidential document persistence in browser caches |
 | Controlled failures | Missing files, storage faults, and integrity failures are separated | Avoids falsely reporting internal faults as ordinary missing records |
+| Server-derived recipient | Recipient comes from the appointment participant pair | Prevents arbitrary-user messaging and recipient mass assignment |
+| Approved conversation | Send queries require approved appointment status | Prevents unsolicited messaging through pending or rejected requests |
+| Message encryption | Separate AES-256-GCM key and random IV | Protects confidential message bodies at rest |
+| Metadata authentication | Appointment, sender, and recipient are GCM additional data | Detects ciphertext reassignment between conversations |
+| Immutable records | No update or delete endpoint and immutable schema fields | Preserves conversation history and reduces tampering paths |
+| Message minimization | Ciphertext, IV, tag, and recipient are not returned | Reduces sensitive metadata disclosure |
+| Body allowlist | Only the `message` property is accepted | Prevents message mass assignment |
+| Control-character checks | Unsafe C0 controls are rejected while line breaks remain allowed | Reduces parser and display ambiguity |
+| Conversation no-store | Message responses disable browser caching | Reduces confidential history persistence in shared caches |
+| Generic authorization failure | Non-participants receive conversation not found | Reduces appointment and conversation enumeration |
 
 ## 5. Files Added or Modified in This Increment
 
@@ -98,6 +126,17 @@ The upload request uses `multipart/form-data` with exactly one file in the
 | `client/src/features/documents/api/document.api.js` | Credentialed upload, list, and blob-download requests |
 | `client/src/features/documents/components/AppointmentDocuments.jsx` | Role-aware upload, list, pagination, and download interface |
 | `client/src/features/appointments/components/DashboardAppointmentItem.jsx` | Integrates documents into each participant's appointment view |
+| `server/src/constants/message.js` | Message and pagination boundaries |
+| `server/src/models/Message.model.js` | Immutable encrypted-message metadata schema |
+| `server/src/utils/message-crypto.js` | Context-bound authenticated message encryption |
+| `server/src/utils/safe-message.js` | Explicit decrypted-message API response mapping |
+| `server/src/validators/message.validator.js` | Message, identifier, body-field, and query validation |
+| `server/src/services/message.service.js` | Conversation authorization, recipient derivation, encryption, and pagination |
+| `server/src/controllers/message.controller.js` | Non-cacheable REST responses |
+| `server/src/routes/message.routes.js` | Participant-only message endpoints |
+| `server/src/routes/document.routes.js` | Moves authorization to matching endpoints to isolate shared router paths |
+| `server/src/config/app.config.js` | Strict separate message-key loading |
+| `server/.env.example` | Documents the required message-encryption key |
 
 ## 6. Known Gaps and Audit Targets
 
@@ -116,6 +155,12 @@ The upload request uses `multipart/form-data` with exactly one file in the
 | Concurrency | UUID names prevent collisions | Race uploads and verify metadata/file consistency |
 | Audit logging | Document access is not logged | Record upload and download security events without logging document content |
 | Retention | Deletion and retention are not implemented | Define legal retention, secure deletion, and authorization rules |
+| Messaging UI | Backend only | Build an escaped-text conversation interface without HTML rendering sinks |
+| Message abuse | Length is bounded but send volume is not | Add message-specific throttling, quotas, and abnormal-volume monitoring |
+| Message status | No read receipts or unread state | Add only if required, with recipient-scoped updates |
+| Message alerts | No new-message notification exists | Add generic notifications that never include message content |
+| Message key lifecycle | Separate environment key is required | Define rotation, key versioning, backup, and recovery |
+| Message retention | Messages are immutable indefinitely | Define retention and legally authorized deletion policy |
 
 The existing cross-sprint findings in `docs/SECURITY_BUG_REPORT.md`, including
 missing abuse controls, CSRF coverage, and duplicate session middleware, remain
@@ -138,6 +183,17 @@ open. They have not been silently fixed as part of this feature increment.
 12. Interrupt upload/database operations and inspect for orphaned files.
 13. Measure memory behavior at the five-megabyte boundary and with parallel
     uploads.
+14. Send and list messages as both assigned participants.
+15. Attempt message access using unrelated clients and lawyers.
+16. Attempt sending against pending, rejected, cancelled, and completed
+    appointments.
+17. Submit unsupported fields, control characters, empty content, and content
+    over 2,000 characters.
+18. Move encrypted message metadata between controlled records and confirm
+    authenticated decryption fails.
+19. Confirm MongoDB and API logs do not contain plaintext message bodies.
+20. Render XSS payload strings through the future React UI and confirm they
+    remain escaped text.
 
 Only synthetic legal documents should be used during testing.
 
@@ -150,28 +206,35 @@ Only synthetic legal documents should be used during testing.
 - Client-versus-unrelated-user document IDOR attempts.
 - Altered-ciphertext integrity failure.
 - Browser download headers showing attachment and `no-store`.
+- Burp participant-versus-non-participant messaging authorization matrix.
+- MongoDB message record showing encrypted content instead of plaintext.
+- Tampered message metadata producing a closed integrity failure.
+- Rejected send request for a non-approved appointment.
 - Git commit containing this backend increment and its audit report.
 
 ## 9. Sprint 3 Work Remaining
 
-1. Implement client-lawyer messaging with strict conversation ownership.
-2. Implement append-only security audit logging.
-3. Build the administrator audit-log view.
-4. Add approved coursework features such as reviews only after core
+1. Build the client-lawyer messaging frontend.
+2. Add generic new-message notifications without confidential previews.
+3. Implement append-only security audit logging.
+4. Build the administrator audit-log view.
+5. Add approved coursework features such as reviews only after core
    confidential workflows are secure.
-5. Perform the Sprint 3 security-hardening pass.
-6. Execute the dynamic audit matrix and attach evidence.
-7. Convert this report from in-progress to retrospective complete.
+6. Perform the Sprint 3 security-hardening pass.
+7. Execute the dynamic audit matrix and attach evidence.
+8. Convert this report from in-progress to retrospective complete.
 
 ## 10. Current Assessment
 
-The encrypted document backend is ready for integration but is not yet
-security closed. Its static design provides bounded parsing, layered file-type
-checks, participant-scoped authorization, non-public encrypted storage,
+The encrypted document workflow and appointment-messaging backend are ready for
+the next integration increment but are not yet security closed. Their static
+design provides bounded parsing, layered file-type checks, participant-scoped
+authorization, non-public encrypted storage, context-bound message encryption,
 integrity verification, and safe response mapping.
 
 The main remaining risks are malicious document content, aggregate storage
-exhaustion, missing CSRF and rate-limit controls, key lifecycle management,
-retention, audit logging, and unexecuted multi-role dynamic testing. Sprint 3
-must remain open until those items are either implemented or formally recorded
-as accepted project limitations.
+exhaustion, message-volume abuse, missing CSRF and rate-limit controls, key
+lifecycle management, retention, audit logging, the unfinished messaging UI,
+and unexecuted multi-role dynamic testing. Sprint 3 must remain open until
+those items are either implemented or formally recorded as accepted project
+limitations.
