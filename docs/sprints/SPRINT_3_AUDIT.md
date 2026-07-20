@@ -7,7 +7,7 @@
 | Sprint | Sprint 3 - Documents, Communication, and Administration |
 | Goal | Deliver secure collaboration between clients and lawyers |
 | Functional status | In progress |
-| Current increment | Encrypted document and messaging workflows |
+| Current increment | Append-only security audit logging backend |
 | Security status | Design review complete for this increment; dynamic audit remains |
 | Audit type | Continuous white-box review |
 
@@ -24,8 +24,8 @@ roles use an escaped-text conversation panel inside their appointment
 dashboard.
 
 This report is intentionally marked in progress. Message notifications, audit
-logging, administration improvements, security hardening, and dynamic security
-evidence are not yet complete.
+log administration, security hardening, and dynamic security evidence are not
+yet complete.
 
 ## 2. Delivered Functionality
 
@@ -70,6 +70,18 @@ evidence are not yet complete.
   names.
 - Message-ID-based notification event keys prevent duplicate alerts.
 - Visible-page unread-count refresh every 30 seconds.
+- Server-generated UUID request correlation on API responses and audit events.
+- Application-enforced append-only audit collection with no update or delete
+  service.
+- HMAC-SHA-256 integrity value over every canonical audit event.
+- Keyed source fingerprints instead of stored raw IP addresses or user-agent
+  strings.
+- Keyed failed-login subject correlation instead of stored email addresses.
+- Audit coverage for registration, successful and failed login, logout, lawyer
+  profile changes and review, appointment transitions, document access, and
+  message sending.
+- Audit metadata excludes passwords, session identifiers, legal summaries,
+  cancellation reasons, filenames, document bytes, and message bodies.
 
 ## 3. API Surface
 
@@ -117,6 +129,14 @@ The upload request uses `multipart/form-data` with exactly one file in the
 | Recipient-scoped alerts | Recipient comes from the authorized appointment pair | Prevents attacker-selected notification targets |
 | Idempotent message events | Message ID forms part of the unique notification key | Prevents duplicate alerts for one stored message |
 | Non-blocking alert delivery | Notification failure does not change message-send success | Prevents misleading retries and duplicate messages |
+| Server request IDs | A new UUID is generated instead of trusting request headers | Reduces log injection and correlation collisions |
+| Append-only model boundary | Save updates, query mutations, document deletion, batch insert, and bulk writes are rejected | Reduces accidental or application-level log alteration |
+| Event integrity HMAC | Canonical event fields are signed with a separate key | Detects direct modification of protected fields |
+| Pseudonymous source correlation | IP and user-agent are represented by a keyed digest | Supports correlation without storing raw source data |
+| Pseudonymous login correlation | Failed-login email is represented by a keyed digest | Supports attack analysis without storing attempted addresses |
+| Explicit event allowlist | Actions, outcomes, actor roles, and target types use enums | Prevents arbitrary log content and log injection |
+| Payload minimization | Only IDs, roles, actions, outcomes, hashes, and timestamps are recorded | Prevents confidential legal content entering audit logs |
+| Post-commit non-blocking writes | Audit failure cannot make a committed mutation appear unsuccessful | Reduces duplicate business operations caused by retries |
 
 ## 5. Files Added or Modified in This Increment
 
@@ -163,6 +183,20 @@ The upload request uses `multipart/form-data` with exactly one file in the
 | `server/src/services/notification.service.js` | Defines generic confidential-safe message alert content |
 | `server/src/services/message.service.js` | Records an idempotent recipient alert after message storage |
 | `client/src/features/notifications/components/NotificationBell.jsx` | Maps message alerts and refreshes unread counts while visible |
+| `server/src/constants/audit.js` | Allowlists audit roles, actions, outcomes, and target types |
+| `server/src/middleware/audit-context.middleware.js` | Generates trusted request IDs and response correlation headers |
+| `server/src/models/AuditLog.model.js` | Immutable event schema, indexes, and application-level mutation guards |
+| `server/src/utils/audit-integrity.js` | Source/subject HMACs and event integrity creation/verification |
+| `server/src/services/audit.service.js` | Central append and non-blocking recording services |
+| `server/src/controllers/auth.controller.js` | Records registration, login success/failure, and logout |
+| `server/src/controllers/lawyer-profile.controller.js` | Records profile creation and updates |
+| `server/src/controllers/admin-lawyer-profile.controller.js` | Records administrator approval and rejection |
+| `server/src/controllers/appointment.controller.js` | Records booking and appointment state changes |
+| `server/src/controllers/document.controller.js` | Records document upload and authorized download |
+| `server/src/controllers/message.controller.js` | Records successful message creation without content |
+| `server/src/config/app.config.js` | Strictly loads the separate audit HMAC key |
+| `server/src/app.js` | Registers audit request context before API routes |
+| `server/.env.example` | Documents the required audit HMAC key |
 
 ## 6. Known Gaps and Audit Targets
 
@@ -179,13 +213,21 @@ The upload request uses `multipart/form-data` with exactly one file in the
 | Download headers | Secure attachment behavior is implemented | Verify filenames and content types across target browsers |
 | Authorization | Source queries are participant-scoped | Execute a full client/lawyer IDOR matrix |
 | Concurrency | UUID names prevent collisions | Race uploads and verify metadata/file consistency |
-| Audit logging | Document access is not logged | Record upload and download security events without logging document content |
+| Audit logging | High-value mutations and document access are logged | Expand coverage as new privileged features are added |
 | Retention | Deletion and retention are not implemented | Define legal retention, secure deletion, and authorization rules |
 | Messaging UI | React escaped-text interface implemented | Verify XSS payloads remain text in every supported browser |
 | Message abuse | Length is bounded but send volume is not | Add message-specific throttling, quotas, and abnormal-volume monitoring |
 | Message status | No read receipts or unread state | Add only if required, with recipient-scoped updates |
 | Message alerts | Generic no-preview notification implemented | Verify recipient scope, idempotency, and polling behavior |
 | Alert consistency | Notification writes are intentionally non-blocking | Add reconciliation for rare message-without-alert failures |
+| Audit viewer | Backend records exist but have no REST/admin interface | Build read-only administrator listing with integrity status |
+| Audit consistency | Writes occur after primary operations and are non-blocking | Add reconciliation and operational alerting for failed audit writes |
+| Deletion detection | Per-record HMAC detects modification, not removed records | Export checkpoints or use immutable external log storage |
+| Database privilege | Mongoose guards cannot stop direct privileged database writes | Restrict DB administration and monitor the collection externally |
+| Audit key lifecycle | One environment HMAC key signs all current records | Add key identifiers, protected rotation, and historical verification |
+| Audit retention | Audit records have no defined retention/archive policy | Define coursework/legal retention and protected disposal |
+| Failure coverage | Failed login is recorded; other denied operations are not yet classified | Add carefully allowlisted denial events without logging attacker payloads |
+| Audit volume | Failed-login events can grow without baseline throttling | Add rate limiting, capacity monitoring, and protected archival |
 | Message key lifecycle | Separate environment key is required | Define rotation, key versioning, backup, and recovery |
 | Message retention | Messages are immutable indefinitely | Define retention and legally authorized deletion policy |
 
@@ -230,6 +272,20 @@ open. They have not been silently fixed as part of this feature increment.
     duplication.
 25. Confirm the unread badge refreshes while the page is visible and stops
     polling after logout or component unmount.
+26. Perform every covered mutation and match the response request ID to one
+    audit event.
+27. Confirm failed-login records contain only keyed correlation values and no
+    attempted email or password.
+28. Confirm document and message events contain no filename, document content,
+    message body, or legal summary.
+29. Modify one controlled audit field directly in MongoDB and confirm integrity
+    verification reports failure.
+30. Attempt every blocked Mongoose update, replacement, delete, insert-many,
+    and bulk-write path.
+31. Cause a controlled audit-write failure and confirm the primary completed
+    operation is not duplicated by the client.
+32. Verify request IDs are server generated even when a conflicting request
+    header is supplied.
 
 Only synthetic legal documents should be used during testing.
 
@@ -251,17 +307,21 @@ Only synthetic legal documents should be used during testing.
 - Notification database/API evidence showing generic content only.
 - Recipient-versus-unrelated-user notification authorization attempt.
 - One message record mapped to one notification event.
+- API response and audit record showing the same server request ID.
+- MongoDB audit event showing pseudonymous source and no confidential payload.
+- Before/after controlled audit modification with failed HMAC verification.
+- Blocked application-level audit update and delete attempts.
+- Event coverage table mapped to each controller and actor role.
 - Git commit containing this backend increment and its audit report.
 
 ## 9. Sprint 3 Work Remaining
 
-1. Implement append-only security audit logging.
-2. Build the administrator audit-log view.
-3. Add approved coursework features such as reviews only after core
+1. Build the read-only administrator audit-log API and interface.
+2. Add approved coursework features such as reviews only after core
    confidential workflows are secure.
-4. Perform the Sprint 3 security-hardening pass.
-5. Execute the dynamic audit matrix and attach evidence.
-6. Convert this report from in-progress to retrospective complete.
+3. Perform the Sprint 3 security-hardening pass.
+4. Execute the dynamic audit matrix and attach evidence.
+5. Convert this report from in-progress to retrospective complete.
 
 ## 10. Current Assessment
 
@@ -269,11 +329,13 @@ The encrypted document and appointment-messaging workflows are ready for the
 next increment but are not yet security closed. Their static
 design provides bounded parsing, layered file-type checks, participant-scoped
 authorization, non-public encrypted storage, context-bound message encryption,
-integrity verification, safe response mapping, and escaped-text rendering.
+integrity verification, safe response mapping, escaped-text rendering, and
+tamper-evident application audit events.
 
 The main remaining risks are malicious document content, aggregate storage
 exhaustion, message-volume abuse, missing CSRF and rate-limit controls, key
-lifecycle management, retention, audit logging, notification reconciliation,
+lifecycle management, retention, audit-write reconciliation, audit deletion
+detection, the unfinished administrator viewer, notification reconciliation,
 and unexecuted multi-role dynamic testing. Sprint 3 must remain open until
 those items are either implemented or formally recorded as accepted project
 limitations.

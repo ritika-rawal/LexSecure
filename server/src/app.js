@@ -7,6 +7,7 @@ import { appConfig } from './config/app.config.js';
 import { corsOptions } from './config/cors.config.js';
 import { helmetOptions } from './config/helmet.config.js';
 import { createSessionOptions } from './config/session.config.js';
+import { auditContextMiddleware } from './middleware/audit-context.middleware.js';
 import { errorMiddleware } from './middleware/error.middleware.js';
 import { notFoundMiddleware } from './middleware/not-found.middleware.js';
 import adminLawyerProfileRoutes from './routes/admin-lawyer-profile.routes.js';
@@ -28,6 +29,7 @@ if (appConfig.isProduction) {
 
 app.use(helmet(helmetOptions));
 app.use(cors(corsOptions));
+app.use(auditContextMiddleware);
 
 /*
  * Limit request body size early to reduce accidental memory pressure and make

@@ -1,4 +1,9 @@
+import {
+  AUDIT_ACTIONS,
+  AUDIT_TARGET_TYPES,
+} from '../constants/audit.js';
 import { MESSAGE_LIST_LIMITS } from '../constants/message.js';
+import { recordAuthenticatedAuditEvent } from '../services/audit.service.js';
 import {
   listAppointmentMessages as listAppointmentMessagesService,
   sendAppointmentMessage as sendAppointmentMessageService,
@@ -11,6 +16,12 @@ export const sendAppointmentMessage = async (req, res) => {
     appointmentId: req.params.appointmentId,
     senderId: req.user.id,
     body: req.body.message,
+  });
+
+  await recordAuthenticatedAuditEvent(req, {
+    action: AUDIT_ACTIONS.MESSAGE_SENT,
+    targetType: AUDIT_TARGET_TYPES.MESSAGE,
+    targetId: message.id,
   });
 
   res.set('Cache-Control', 'private, no-store');

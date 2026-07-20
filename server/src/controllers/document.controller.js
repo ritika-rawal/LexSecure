@@ -1,4 +1,9 @@
 import {
+  AUDIT_ACTIONS,
+  AUDIT_TARGET_TYPES,
+} from '../constants/audit.js';
+import { recordAuthenticatedAuditEvent } from '../services/audit.service.js';
+import {
   getAuthorizedDocumentDownload as getAuthorizedDocumentDownloadService,
   listAppointmentDocuments as listAppointmentDocumentsService,
   uploadAppointmentDocument as uploadAppointmentDocumentService,
@@ -13,6 +18,12 @@ export const uploadAppointmentDocument = async (req, res) => {
     appointmentId: req.params.appointmentId,
     clientId: req.user.id,
     file: req.file,
+  });
+
+  await recordAuthenticatedAuditEvent(req, {
+    action: AUDIT_ACTIONS.DOCUMENT_UPLOADED,
+    targetType: AUDIT_TARGET_TYPES.DOCUMENT,
+    targetId: document._id,
   });
 
   res.status(201).json({
@@ -47,6 +58,12 @@ export const downloadDocument = async (req, res) => {
       documentId: req.params.documentId,
       userId: req.user.id,
     });
+
+  await recordAuthenticatedAuditEvent(req, {
+    action: AUDIT_ACTIONS.DOCUMENT_DOWNLOADED,
+    targetType: AUDIT_TARGET_TYPES.DOCUMENT,
+    targetId: document._id,
+  });
 
   res.set({
     'Cache-Control': 'private, no-store',

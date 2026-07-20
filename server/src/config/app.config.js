@@ -34,6 +34,7 @@ const mongodbUri = process.env.MONGODB_URI;
 const sessionSecret = process.env.SESSION_SECRET;
 const documentEncryptionKey = process.env.DOCUMENT_ENCRYPTION_KEY;
 const messageEncryptionKey = process.env.MESSAGE_ENCRYPTION_KEY;
+const auditLogHmacKey = process.env.AUDIT_LOG_HMAC_KEY;
 
 const parseEncryptionKey = (value, variableName) => {
   if (!value) {
@@ -67,5 +68,9 @@ export const appConfig = Object.freeze({
   messageEncryptionKey: parseEncryptionKey(
     messageEncryptionKey,
     'MESSAGE_ENCRYPTION_KEY',
+  ),
+  auditLogHmacKey: parseEncryptionKey(
+    auditLogHmacKey,
+    'AUDIT_LOG_HMAC_KEY',
   ),
 });
