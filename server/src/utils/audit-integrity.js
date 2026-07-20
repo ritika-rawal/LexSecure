@@ -35,18 +35,22 @@ export const createAuditIntegrityHash = (event) =>
   createHmacDigest(buildCanonicalEvent(event));
 
 export const verifyAuditIntegrity = (event) => {
-  const expectedHash = createAuditIntegrityHash(event);
-  const storedHash = event.integrityHash;
+  try {
+    const expectedHash = createAuditIntegrityHash(event);
+    const storedHash = event.integrityHash;
 
-  if (
-    typeof storedHash !== 'string'
-    || !/^[a-f0-9]{64}$/.test(storedHash)
-  ) {
+    if (
+      typeof storedHash !== 'string'
+      || !/^[a-f0-9]{64}$/.test(storedHash)
+    ) {
+      return false;
+    }
+
+    return timingSafeEqual(
+      Buffer.from(storedHash, 'hex'),
+      Buffer.from(expectedHash, 'hex'),
+    );
+  } catch {
     return false;
   }
-
-  return timingSafeEqual(
-    Buffer.from(storedHash, 'hex'),
-    Buffer.from(expectedHash, 'hex'),
-  );
 };

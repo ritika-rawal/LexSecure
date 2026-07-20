@@ -7,7 +7,7 @@
 | Sprint | Sprint 3 - Documents, Communication, and Administration |
 | Goal | Deliver secure collaboration between clients and lawyers |
 | Functional status | In progress |
-| Current increment | Append-only security audit logging backend |
+| Current increment | Administrator audit-log monitoring |
 | Security status | Design review complete for this increment; dynamic audit remains |
 | Audit type | Continuous white-box review |
 
@@ -24,8 +24,8 @@ roles use an escaped-text conversation panel inside their appointment
 dashboard.
 
 This report is intentionally marked in progress. Message notifications, audit
-log administration, security hardening, and dynamic security evidence are not
-yet complete.
+log hardening, additional approved coursework features, and dynamic security
+evidence are not yet complete.
 
 ## 2. Delivered Functionality
 
@@ -82,6 +82,15 @@ yet complete.
   message sending.
 - Audit metadata excludes passwords, session identifiers, legal summaries,
   cancellation reasons, filenames, document bytes, and message bodies.
+- Administrator-only read API for audit events.
+- Strict audit filter allowlist covering action, outcome, actor role, target
+  type, request ID, target ID, date range, and pagination.
+- Integrity verification before actor display data is populated.
+- Safe audit responses with shortened source and subject references.
+- Read-only operational table with filtering, pagination, refresh, and
+  responsive horizontal overflow.
+- Prominent failed-integrity state instead of hiding malformed records.
+- Every successful audit-log view creates its own audit event.
 
 ## 3. API Surface
 
@@ -137,6 +146,14 @@ The upload request uses `multipart/form-data` with exactly one file in the
 | Explicit event allowlist | Actions, outcomes, actor roles, and target types use enums | Prevents arbitrary log content and log injection |
 | Payload minimization | Only IDs, roles, actions, outcomes, hashes, and timestamps are recorded | Prevents confidential legal content entering audit logs |
 | Post-commit non-blocking writes | Audit failure cannot make a committed mutation appear unsuccessful | Reduces duplicate business operations caused by retries |
+| Administrator-only listing | Session authentication and server-side admin RBAC protect the endpoint | Prevents clients and lawyers reading security telemetry |
+| Read-only API | Only `GET` is exposed and model mutation guards remain active | Reduces audit tampering surface |
+| Filter allowlist | Unknown query parameters and invalid enum/ID/date values are rejected | Reduces query injection and unbounded filtering |
+| Pre-population verification | HMAC is checked while actor remains the original stored identifier | Avoids display joins changing canonical integrity data |
+| Failure-visible response | Malformed or altered records return failed integrity status | Prevents silent trust in corrupted events |
+| Hash minimization | Only 12-character correlation references reach the browser | Limits disclosure of pseudonymous tracking values |
+| No-store audit responses | Administrator results disable browser caching | Reduces security telemetry persistence on shared devices |
+| Audited reads | Each successful audit-log listing records `audit.logs_viewed` | Creates accountability for access to security records |
 
 ## 5. Files Added or Modified in This Increment
 
@@ -197,6 +214,19 @@ The upload request uses `multipart/form-data` with exactly one file in the
 | `server/src/config/app.config.js` | Strictly loads the separate audit HMAC key |
 | `server/src/app.js` | Registers audit request context before API routes |
 | `server/.env.example` | Documents the required audit HMAC key |
+| `server/src/utils/safe-audit-log.js` | Maps verified events to minimized administrator responses |
+| `server/src/services/admin-audit.service.js` | Applies filters, verifies integrity, populates actors, and paginates |
+| `server/src/validators/admin-audit.validator.js` | Allowlists and validates every audit query field |
+| `server/src/controllers/admin-audit.controller.js` | Returns non-cacheable logs and records audited reads |
+| `server/src/routes/admin-audit.routes.js` | Exposes the administrator-only read endpoint |
+| `server/src/constants/audit.js` | Adds audit-view action and audit-log target type |
+| `client/src/features/admin/constants/auditLog.js` | Mirrors supported filter options and page size |
+| `client/src/features/admin/api/auditLog.api.js` | Sends credentialed, normalized audit-list requests |
+| `client/src/features/admin/utils/auditLog.js` | Formats allowlisted labels and timestamps |
+| `client/src/features/admin/components/AuditLogFilters.jsx` | Provides explicit operational filters |
+| `client/src/features/admin/pages/AuditLogPage.jsx` | Read-only table, integrity status, pagination, and error states |
+| `client/src/features/admin/pages/LawyerReviewPage.jsx` | Adds navigation to security audit logs |
+| `client/src/routes/AppRoutes.jsx` | Registers the admin-protected audit-log page |
 
 ## 6. Known Gaps and Audit Targets
 
@@ -220,7 +250,7 @@ The upload request uses `multipart/form-data` with exactly one file in the
 | Message status | No read receipts or unread state | Add only if required, with recipient-scoped updates |
 | Message alerts | Generic no-preview notification implemented | Verify recipient scope, idempotency, and polling behavior |
 | Alert consistency | Notification writes are intentionally non-blocking | Add reconciliation for rare message-without-alert failures |
-| Audit viewer | Backend records exist but have no REST/admin interface | Build read-only administrator listing with integrity status |
+| Audit viewer | Read-only admin API and interface implemented | Verify role matrix, filtering, no-store behavior, and integrity display |
 | Audit consistency | Writes occur after primary operations and are non-blocking | Add reconciliation and operational alerting for failed audit writes |
 | Deletion detection | Per-record HMAC detects modification, not removed records | Export checkpoints or use immutable external log storage |
 | Database privilege | Mongoose guards cannot stop direct privileged database writes | Restrict DB administration and monitor the collection externally |
@@ -286,6 +316,17 @@ open. They have not been silently fixed as part of this feature increment.
     operation is not duplicated by the client.
 32. Verify request IDs are server generated even when a conflicting request
     header is supplied.
+33. Attempt the audit endpoint with anonymous, client, and lawyer sessions and
+    confirm each is denied.
+34. Submit unsupported query fields, invalid enums, malformed IDs, reversed
+    dates, and excessive page sizes.
+35. Confirm a directly altered event is returned with failed integrity status
+    rather than crashing or disappearing.
+36. Confirm full source, subject, and integrity hashes never reach the browser.
+37. Confirm each successful administrator listing creates one
+    `audit.logs_viewed` event.
+38. Verify audit responses include `private, no-store` and that filtering never
+    returns records outside the requested range.
 
 Only synthetic legal documents should be used during testing.
 
@@ -312,16 +353,20 @@ Only synthetic legal documents should be used during testing.
 - Before/after controlled audit modification with failed HMAC verification.
 - Blocked application-level audit update and delete attempts.
 - Event coverage table mapped to each controller and actor role.
+- Client/lawyer `403` responses for the administrator audit endpoint.
+- Filtered audit table showing action, role, target, date, and outcome filters.
+- Administrator view showing a controlled failed-integrity record.
+- Browser network evidence showing shortened references and no full hashes.
+- Audit event proving administrator access to the audit log was itself logged.
 - Git commit containing this backend increment and its audit report.
 
 ## 9. Sprint 3 Work Remaining
 
-1. Build the read-only administrator audit-log API and interface.
-2. Add approved coursework features such as reviews only after core
+1. Add approved coursework features such as reviews only after core
    confidential workflows are secure.
-3. Perform the Sprint 3 security-hardening pass.
-4. Execute the dynamic audit matrix and attach evidence.
-5. Convert this report from in-progress to retrospective complete.
+2. Perform the Sprint 3 security-hardening pass.
+3. Execute the dynamic audit matrix and attach evidence.
+4. Convert this report from in-progress to retrospective complete.
 
 ## 10. Current Assessment
 
@@ -335,7 +380,6 @@ tamper-evident application audit events.
 The main remaining risks are malicious document content, aggregate storage
 exhaustion, message-volume abuse, missing CSRF and rate-limit controls, key
 lifecycle management, retention, audit-write reconciliation, audit deletion
-detection, the unfinished administrator viewer, notification reconciliation,
-and unexecuted multi-role dynamic testing. Sprint 3 must remain open until
-those items are either implemented or formally recorded as accepted project
-limitations.
+detection, notification reconciliation, and unexecuted multi-role dynamic
+testing. Sprint 3 must remain open until those items are either implemented or
+formally recorded as accepted project limitations.

@@ -5,10 +5,12 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardCheck,
+  ScrollText,
   LoaderCircle,
   RefreshCw,
   Scale,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 import LogoutButton from '../../auth/components/LogoutButton.jsx';
 import { getAuthApiError } from '../../auth/utils/apiError.js';
@@ -115,7 +117,16 @@ const LawyerReviewPage = () => {
               <span className="text-xs text-gray-600">Administration</span>
             </div>
           </div>
-          <LogoutButton />
+          <div className="flex items-center gap-2">
+            <Link
+              className="flex h-10 items-center gap-2 border border-gray-300 bg-white px-3 text-sm font-semibold hover:bg-gray-100"
+              to="/admin/audit-logs"
+            >
+              <ScrollText aria-hidden="true" className="h-4 w-4" />
+              <span className="hidden sm:inline">Audit logs</span>
+            </Link>
+            <LogoutButton />
+          </div>
         </div>
       </header>
 
