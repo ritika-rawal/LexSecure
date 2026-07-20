@@ -15,6 +15,7 @@ import {
 
 import { getAuthApiError } from '../../auth/utils/apiError.js';
 import AppointmentDocuments from '../../documents/components/AppointmentDocuments.jsx';
+import AppointmentMessages from '../../messages/components/AppointmentMessages.jsx';
 import { cancelAppointment } from '../api/appointmentDashboard.api.js';
 import RescheduleAppointmentForm from './RescheduleAppointmentForm.jsx';
 import {
@@ -180,6 +181,12 @@ const DashboardAppointmentItem = ({ appointment, onChanged }) => {
               </p>
             ) : null}
           </div>
+
+          <AppointmentMessages
+            appointmentId={appointment.id}
+            appointmentStatus={appointment.status}
+            participantName={appointment.participant.fullName}
+          />
 
           <AppointmentDocuments
             appointmentId={appointment.id}
