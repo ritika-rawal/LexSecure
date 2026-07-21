@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import { appConfig } from './config/app.config.js';
 import { corsOptions } from './config/cors.config.js';
 import { helmetOptions } from './config/helmet.config.js';
+import { apiRateLimiter } from './config/rate-limit.config.js';
 import { createSessionOptions } from './config/session.config.js';
 import accountExportRoutes from './routes/account-export.routes.js';
 import { auditContextMiddleware } from './middleware/audit-context.middleware.js';
@@ -34,6 +35,7 @@ if (appConfig.isProduction) {
 app.use(helmet(helmetOptions));
 app.use(cors(corsOptions));
 app.use(auditContextMiddleware);
+app.use('/api', apiRateLimiter);
 
 /*
  * Limit request body size early to reduce accidental memory pressure and make

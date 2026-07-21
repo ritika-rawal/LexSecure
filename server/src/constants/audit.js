@@ -14,6 +14,7 @@ export const AUDIT_ACTIONS = Object.freeze({
   USER_REGISTERED: 'auth.user_registered',
   LOGIN_SUCCEEDED: 'auth.login_succeeded',
   LOGIN_FAILED: 'auth.login_failed',
+  ACCOUNT_LOCKED: 'auth.account_locked',
   LOGOUT: 'auth.logout',
   LAWYER_PROFILE_CREATED: 'lawyer_profile.created',
   LAWYER_PROFILE_UPDATED: 'lawyer_profile.updated',

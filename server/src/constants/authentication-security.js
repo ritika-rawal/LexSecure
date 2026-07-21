@@ -1,0 +1,19 @@
+export const LOGIN_SECURITY_LIMITS = Object.freeze({
+  MAXIMUM_FAILED_ATTEMPTS: 5,
+  LOCKOUT_DURATION_MS: 15 * 60 * 1000,
+});
+
+export const RATE_LIMIT_WINDOWS_MS = Object.freeze({
+  API: 15 * 60 * 1000,
+  AUTHENTICATION: 15 * 60 * 1000,
+  REGISTRATION: 60 * 60 * 1000,
+});
+
+export const RATE_LIMIT_MAXIMUMS = Object.freeze({
+  API: 300,
+  CSRF_TOKEN: 60,
+  FAILED_LOGIN: 10,
+  REGISTRATION: 5,
+});
+
+export const RATE_LIMIT_ERROR_CODE = 'RATE_LIMIT_EXCEEDED';
