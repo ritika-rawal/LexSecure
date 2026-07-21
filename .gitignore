@@ -10,6 +10,9 @@ node_modules/
 dist/
 build/
 
+# Coursework reports and local security-audit evidence are maintained locally.
+/docs/
+
 # Logs
 *.log
 npm-debug.log*
