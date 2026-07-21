@@ -31,6 +31,18 @@ const parseAllowedOrigins = (value) => {
   return origins.length > 0 ? origins : [DEFAULT_CLIENT_ORIGIN];
 };
 
+const parseTrustProxyHops = (value) => {
+  if (value === undefined || value === '') return nodeEnv === 'production' ? 1 : 0;
+
+  const hops = Number.parseInt(value, 10);
+
+  if (!Number.isInteger(hops) || hops < 0 || hops > 2) {
+    throw new Error('TRUST_PROXY_HOPS must be an integer between 0 and 2.');
+  }
+
+  return hops;
+};
+
 const parseBoolean = (value, defaultValue) => {
   if (value === undefined || value === '') return defaultValue;
   if (value === 'true') return true;
@@ -146,7 +158,12 @@ const resolvedMfaEncryptionKey = mfaEncryptionKey
 export const appConfig = Object.freeze({
   env: nodeEnv,
   isProduction: nodeEnv === 'production',
+  exposeErrorDetails: parseBoolean(
+    process.env.EXPOSE_ERROR_DETAILS,
+    nodeEnv !== 'production',
+  ),
   port: parsePort(process.env.PORT),
+  trustProxyHops: parseTrustProxyHops(process.env.TRUST_PROXY_HOPS),
   clientOrigins: parseAllowedOrigins(process.env.CLIENT_ORIGIN || DEFAULT_CLIENT_ORIGIN),
   jsonBodyLimit: '100kb',
   mongodbUri,

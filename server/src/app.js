@@ -29,8 +29,8 @@ const app = express();
 
 app.disable('x-powered-by');
 
-if (appConfig.isProduction) {
-  app.set('trust proxy', 1);
+if (appConfig.trustProxyHops > 0) {
+  app.set('trust proxy', appConfig.trustProxyHops);
 }
 
 app.use(helmet(helmetOptions));
