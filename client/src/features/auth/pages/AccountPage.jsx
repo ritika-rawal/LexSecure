@@ -16,6 +16,7 @@ import {
 import { Link } from 'react-router-dom';
 
 import AccountDataExport from '../../export/components/AccountDataExport.jsx';
+import AccountDataImport from '../../export/components/AccountDataImport.jsx';
 import AuthenticatedHeaderActions from '../../notifications/components/AuthenticatedHeaderActions.jsx';
 import MfaSecurityPanel from '../components/MfaSecurityPanel.jsx';
 import PasswordSecurityPanel from '../components/PasswordSecurityPanel.jsx';
@@ -193,7 +194,12 @@ const AccountPage = () => {
         </section>
         <PasswordSecurityPanel />
         <MfaSecurityPanel />
-        {user.role !== USER_ROLES.ADMIN ? <AccountDataExport /> : null}
+        {user.role !== USER_ROLES.ADMIN ? (
+          <>
+            <AccountDataExport />
+            <AccountDataImport />
+          </>
+        ) : null}
       </div>
     </main>
   );

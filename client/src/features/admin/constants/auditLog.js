@@ -28,6 +28,7 @@ export const AUDIT_ACTION_OPTIONS = Object.freeze([
   'message.sent',
   'review.created',
   'account.data_exported',
+  'account.data_imported',
   'audit.logs_viewed',
   'ip_access.rule_created',
   'ip_access.rule_updated',

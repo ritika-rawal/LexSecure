@@ -9,6 +9,7 @@ import { helmetOptions } from './config/helmet.config.js';
 import { apiRateLimiter } from './config/rate-limit.config.js';
 import { createSessionOptions } from './config/session.config.js';
 import accountExportRoutes from './routes/account-export.routes.js';
+import accountImportRoutes from './routes/account-import.routes.js';
 import { auditContextMiddleware } from './middleware/audit-context.middleware.js';
 import { csrfProtectionMiddleware } from './middleware/csrf.middleware.js';
 import { errorMiddleware } from './middleware/error.middleware.js';
@@ -63,6 +64,7 @@ app.use(csrfProtectionMiddleware);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/account', accountExportRoutes);
+app.use('/api/account', accountImportRoutes);
 app.use('/api', documentRoutes);
 app.use('/api', messageRoutes);
 app.use('/api', reviewRoutes);

@@ -38,6 +38,7 @@ export const AUDIT_ACTIONS = Object.freeze({
   MESSAGE_SENT: 'message.sent',
   REVIEW_CREATED: 'review.created',
   ACCOUNT_DATA_EXPORTED: 'account.data_exported',
+  ACCOUNT_DATA_IMPORTED: 'account.data_imported',
   AUDIT_LOGS_VIEWED: 'audit.logs_viewed',
   IP_ACCESS_RULE_CREATED: 'ip_access.rule_created',
   IP_ACCESS_RULE_UPDATED: 'ip_access.rule_updated',

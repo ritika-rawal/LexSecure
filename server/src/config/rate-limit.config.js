@@ -78,3 +78,9 @@ export const passwordChangeRateLimiter = createRateLimiter({
   limit: RATE_LIMIT_MAXIMUMS.PASSWORD_CHANGE,
   message: 'Too many password change attempts. Try again later.',
 });
+
+export const accountImportRateLimiter = createRateLimiter({
+  windowMs: RATE_LIMIT_WINDOWS_MS.ACCOUNT_IMPORT,
+  limit: RATE_LIMIT_MAXIMUMS.ACCOUNT_IMPORT,
+  message: 'Too many account import attempts. Try again later.',
+});
