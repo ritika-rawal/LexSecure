@@ -60,3 +60,15 @@ export const registrationRateLimiter = createRateLimiter({
   limit: RATE_LIMIT_MAXIMUMS.REGISTRATION,
   message: 'Too many registration attempts. Try again later.',
 });
+
+export const passwordResetRequestRateLimiter = createRateLimiter({
+  windowMs: RATE_LIMIT_WINDOWS_MS.PASSWORD_RESET,
+  limit: RATE_LIMIT_MAXIMUMS.PASSWORD_RESET_REQUEST,
+  message: 'Too many password reset requests. Try again later.',
+});
+
+export const passwordResetConfirmRateLimiter = createRateLimiter({
+  windowMs: RATE_LIMIT_WINDOWS_MS.AUTHENTICATION,
+  limit: RATE_LIMIT_MAXIMUMS.PASSWORD_RESET_CONFIRM,
+  message: 'Too many password reset attempts. Try again later.',
+});

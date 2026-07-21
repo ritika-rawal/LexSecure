@@ -7,7 +7,9 @@ import { AUTH_STATUS } from '../features/auth/constants/authStatus.js';
 import { USER_ROLES, USER_ROLE_VALUES } from '../features/auth/constants/userRoles.js';
 import { useAuth } from '../features/auth/hooks/useAuth.js';
 import AccountPage from '../features/auth/pages/AccountPage.jsx';
+import ForgotPasswordPage from '../features/auth/pages/ForgotPasswordPage.jsx';
 import LoginPage from '../features/auth/pages/LoginPage.jsx';
+import PasswordResetPage from '../features/auth/pages/PasswordResetPage.jsx';
 import RegisterPage from '../features/auth/pages/RegisterPage.jsx';
 import UnauthorizedPage from '../features/auth/pages/UnauthorizedPage.jsx';
 import { getRoleHomePath } from '../features/auth/utils/roleHomePath.js';
@@ -44,7 +46,9 @@ const AppRoutes = () => {
       <Route element={<PublicOnlyRoute />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       </Route>
+      <Route path="/reset-password" element={<PasswordResetPage />} />
       <Route element={<ProtectedRoute allowedRoles={[USER_ROLES.CLIENT]} />}>
         <Route path="/client/account" element={<AccountPage />} />
         <Route path="/client/appointments" element={<AppointmentDashboardPage />} />

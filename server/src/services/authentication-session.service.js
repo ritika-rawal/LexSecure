@@ -6,7 +6,11 @@ export const establishAuthenticatedSession = async ({ req, user }) => {
 
   await clearFailedLoginAttempts(user._id, lastLoginAt);
   await regenerateSession(req);
-  req.session.user = { id: user.id, role: user.role };
+  req.session.user = {
+    id: user.id,
+    role: user.role,
+    authVersion: user.authVersion,
+  };
   await saveSession(req);
 
   user.lastLoginAt = lastLoginAt;

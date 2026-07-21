@@ -81,7 +81,10 @@ export const verifyMfaLogin = async (req, res) => {
 
   const user = await getMfaUser(challenge.userId);
   const verification =
-    user?.isActive && user.mfaEnabled && user.mfaSecret
+    user?.isActive
+      && user.mfaEnabled
+      && user.mfaSecret
+      && user.authVersion === challenge.authVersion
       ? await verifyEnabledMfaCode({ user, code: req.body.code })
       : { valid: false, recoveryCodeUsed: false };
 
@@ -149,7 +152,11 @@ export const disableMfa = async (req, res) => {
 
   await disableMfaService(user._id);
   await regenerateSession(req);
-  req.session.user = { id: user.id, role: user.role };
+  req.session.user = {
+    id: user.id,
+    role: user.role,
+    authVersion: user.authVersion,
+  };
   await saveSession(req);
 
   const safeUser = { ...req.user, mfaEnabled: false };

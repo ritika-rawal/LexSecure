@@ -11,8 +11,14 @@ import {
   csrfTokenRateLimiter,
   failedLoginRateLimiter,
   failedMfaVerificationRateLimiter,
+  passwordResetConfirmRateLimiter,
+  passwordResetRequestRateLimiter,
   registrationRateLimiter,
 } from '../config/rate-limit.config.js';
+import {
+  requestPasswordResetEmail,
+  resetPassword,
+} from '../controllers/password-reset.controller.js';
 import { requireAuthentication } from '../middleware/auth.middleware.js';
 import { validateRequest } from '../middleware/validate-request.middleware.js';
 import { asyncHandler } from '../utils/async-handler.js';
@@ -29,6 +35,10 @@ import {
   enableMfa,
   verifyMfaLogin,
 } from '../controllers/mfa.controller.js';
+import {
+  passwordResetConfirmValidator,
+  passwordResetRequestValidator,
+} from '../validators/password-reset.validator.js';
 
 const router = Router();
 
@@ -46,6 +56,20 @@ router.post(
   loginValidator,
   validateRequest,
   asyncHandler(loginUser),
+);
+router.post(
+  '/password-reset/request',
+  passwordResetRequestRateLimiter,
+  passwordResetRequestValidator,
+  validateRequest,
+  asyncHandler(requestPasswordResetEmail),
+);
+router.post(
+  '/password-reset/confirm',
+  passwordResetConfirmRateLimiter,
+  passwordResetConfirmValidator,
+  validateRequest,
+  asyncHandler(resetPassword),
 );
 router.post(
   '/mfa/verify-login',

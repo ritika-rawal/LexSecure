@@ -189,9 +189,14 @@ const LoginForm = () => {
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-semibold text-ink" htmlFor="loginPassword">
-            Password
-          </label>
+          <div className="mb-2 flex items-center justify-between gap-4">
+            <label className="block text-sm font-semibold text-ink" htmlFor="loginPassword">
+              Password
+            </label>
+            <Link className="text-sm font-semibold text-forest hover:underline" to="/forgot-password">
+              Forgot password?
+            </Link>
+          </div>
           <div className="relative">
             <LockKeyhole aria-hidden="true" className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-gray-500" />
             <input

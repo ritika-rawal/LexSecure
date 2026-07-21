@@ -48,6 +48,12 @@ export const AuthProvider = ({ children }) => {
     setInitializationError(null);
   }, []);
 
+  const clearAuthenticatedUser = useCallback(() => {
+    setUser(null);
+    setStatus(AUTH_STATUS.UNAUTHENTICATED);
+    setInitializationError(null);
+  }, []);
+
   const logout = useCallback(() => {
     if (logoutRequestRef.current) {
       return logoutRequestRef.current;
@@ -74,12 +80,21 @@ export const AuthProvider = ({ children }) => {
     () => ({
       initializationError,
       isLoggingOut,
+      clearAuthenticatedUser,
       logout,
       setAuthenticatedUser,
       status,
       user,
     }),
-    [initializationError, isLoggingOut, logout, setAuthenticatedUser, status, user],
+    [
+      clearAuthenticatedUser,
+      initializationError,
+      isLoggingOut,
+      logout,
+      setAuthenticatedUser,
+      status,
+      user,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

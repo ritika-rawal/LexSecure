@@ -14,6 +14,7 @@ const createAuthenticationError = () => {
 
 export const requireAuthentication = async (req, res, next) => {
   const sessionUserId = req.session?.user?.id;
+  const sessionAuthVersion = req.session?.user?.authVersion;
 
   if (!sessionUserId) {
     throw createAuthenticationError();
@@ -25,9 +26,14 @@ export const requireAuthentication = async (req, res, next) => {
     throw createAuthenticationError();
   }
 
-  const user = await User.findById(sessionUserId);
+  const user = await User.findById(sessionUserId).select('+authVersion');
 
-  if (!user || !user.isActive) {
+  if (
+    !user
+    || !user.isActive
+    || !Number.isInteger(sessionAuthVersion)
+    || sessionAuthVersion !== user.authVersion
+  ) {
     await destroySession(req);
     res.clearCookie(SESSION_COOKIE_NAME, sessionCookieOptions);
     throw createAuthenticationError();

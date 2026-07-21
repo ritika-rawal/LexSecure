@@ -83,7 +83,7 @@ export const loginUser = async (req, res) => {
   const normalizedEmail = email.toLowerCase();
 
   const user = await User.findOne({ email: normalizedEmail }).select(
-    '+passwordHash +failedLoginAttempts +lockedUntil',
+    '+passwordHash +failedLoginAttempts +lockedUntil +authVersion',
   );
   const passwordHash = user?.passwordHash || DUMMY_PASSWORD_HASH;
   const passwordMatches = await verifyPassword(password, passwordHash);
@@ -137,6 +137,7 @@ export const loginUser = async (req, res) => {
     await regenerateSession(req);
     req.session.mfaChallenge = {
       userId: user.id,
+      authVersion: user.authVersion,
       attempts: 0,
       expiresAt: Date.now() + MFA_LIMITS.LOGIN_CHALLENGE_EXPIRY_MS,
     };

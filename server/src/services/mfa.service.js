@@ -173,12 +173,12 @@ export const verifyEnabledMfaCode = async ({ user, code }) => {
 
 export const getMfaUser = (userId) =>
   User.findById(userId).select(
-    '+mfaSecret +mfaRecoveryCodeHashes +mfaLastUsedTimeStep',
+    '+mfaSecret +mfaRecoveryCodeHashes +mfaLastUsedTimeStep +authVersion',
   );
 
 export const getMfaManagementUser = (userId) =>
   User.findById(userId).select(
-    '+passwordHash +mfaSecret +mfaRecoveryCodeHashes +mfaLastUsedTimeStep',
+    '+passwordHash +mfaSecret +mfaRecoveryCodeHashes +mfaLastUsedTimeStep +authVersion',
   );
 
 export const disableMfa = async (userId) => {
