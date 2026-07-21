@@ -28,16 +28,19 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
 
       - name: Configure Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: package-lock.json
+
+      - name: Align npm audit engine
+        run: npm install --global npm@11.0.0
 
       - name: Install locked dependencies
         run: npm ci
@@ -76,7 +79,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
 
@@ -87,11 +90,14 @@ jobs:
           queries: security-extended
 
       - name: Configure Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: package-lock.json
+
+      - name: Align npm version
+        run: npm install --global npm@11.0.0
 
       - name: Install locked dependencies
         run: npm ci
@@ -114,7 +120,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
 
