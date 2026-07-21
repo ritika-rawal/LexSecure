@@ -13,6 +13,7 @@ export const RATE_LIMIT_MAXIMUMS = Object.freeze({
   API: 300,
   CSRF_TOKEN: 60,
   FAILED_LOGIN: 10,
+  FAILED_MFA_VERIFICATION: 10,
   REGISTRATION: 5,
 });
 

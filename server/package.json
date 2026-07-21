@@ -23,6 +23,8 @@
     "file-type": "^22.0.1",
     "helmet": "^7.1.0",
     "mongoose": "^8.5.0",
-    "multer": "^2.2.0"
+    "multer": "^2.2.0",
+    "otplib": "^13.4.1",
+    "qrcode": "^1.5.4"
   }
 }

@@ -48,6 +48,13 @@ export const failedLoginRateLimiter = createRateLimiter({
   skipSuccessfulRequests: true,
 });
 
+export const failedMfaVerificationRateLimiter = createRateLimiter({
+  windowMs: RATE_LIMIT_WINDOWS_MS.AUTHENTICATION,
+  limit: RATE_LIMIT_MAXIMUMS.FAILED_MFA_VERIFICATION,
+  message: 'Too many authentication-code attempts. Try again later.',
+  skipSuccessfulRequests: true,
+});
+
 export const registrationRateLimiter = createRateLimiter({
   windowMs: RATE_LIMIT_WINDOWS_MS.REGISTRATION,
   limit: RATE_LIMIT_MAXIMUMS.REGISTRATION,

@@ -7,13 +7,16 @@ import {
   LoaderCircle,
   LockKeyhole,
   Mail,
+  KeyRound,
 } from 'lucide-react';
 
 import { loginUser } from '../api/login.api.js';
+import { verifyMfaLogin } from '../api/mfa.api.js';
 import { useAuth } from '../hooks/useAuth.js';
 import { getAuthApiError } from '../utils/apiError.js';
 import { getRoleHomePath } from '../utils/roleHomePath.js';
 import { validateLogin } from '../validation/login.validation.js';
+import { normalizeMfaCode, validateMfaCode } from '../validation/mfa.validation.js';
 import FieldError from './FieldError.jsx';
 
 const INITIAL_VALUES = { email: '', password: '' };
@@ -26,6 +29,8 @@ const LoginForm = () => {
   const [submitError, setSubmitError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [requiresMfa, setRequiresMfa] = useState(false);
+  const [mfaCode, setMfaCode] = useState('');
 
   const updateField = ({ target: { name, value } }) => {
     setValues((current) => ({ ...current, [name]: value }));
@@ -49,6 +54,14 @@ const LoginForm = () => {
     setIsSubmitting(true);
     try {
       const response = await loginUser(values);
+
+      if (response.data.requiresMfa) {
+        setRequiresMfa(true);
+        setValues(INITIAL_VALUES);
+        setMfaCode('');
+        return;
+      }
+
       setAuthenticatedUser(response.data.user);
       setValues(INITIAL_VALUES);
       navigate(getRoleHomePath(response.data.user.role), { replace: true });
@@ -62,13 +75,39 @@ const LoginForm = () => {
     }
   };
 
+  const handleMfaSubmit = async (event) => {
+    event.preventDefault();
+    const validationError = validateMfaCode(mfaCode);
+
+    setSubmitError(validationError);
+    if (validationError) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await verifyMfaLogin(normalizeMfaCode(mfaCode));
+      setAuthenticatedUser(response.data.user);
+      setMfaCode('');
+      navigate(getRoleHomePath(response.data.user.role), { replace: true });
+    } catch (error) {
+      setSubmitError(
+        getAuthApiError(error, 'Authentication could not be completed.').message,
+      );
+      setMfaCode('');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div>
       <div className="mb-8">
-        <p className="mb-2 text-sm font-semibold uppercase text-forest">Secure access</p>
-        <h1 className="text-3xl font-bold text-ink sm:text-4xl">Sign in to LexSecure</h1>
+        <p className="mb-2 text-sm font-semibold uppercase text-forest">{requiresMfa ? 'Identity verification' : 'Secure access'}</p>
+        <h1 className="text-3xl font-bold text-ink sm:text-4xl">{requiresMfa ? 'Enter authentication code' : 'Sign in to LexSecure'}</h1>
         <p className="mt-3 leading-7 text-gray-600">
-          Use the email and password associated with your account.
+          {requiresMfa
+            ? 'Use your authenticator app or a one-time recovery code.'
+            : 'Use the email and password associated with your account.'}
         </p>
       </div>
 
@@ -81,6 +120,46 @@ const LoginForm = () => {
         </div>
       ) : null}
 
+      {requiresMfa ? (
+        <form className="space-y-5" noValidate onSubmit={handleMfaSubmit}>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-ink" htmlFor="loginMfaCode">Authenticator or recovery code</label>
+            <div className="relative">
+              <KeyRound aria-hidden="true" className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-gray-500" />
+              <input
+                autoComplete="one-time-code"
+                autoFocus
+                className="form-input"
+                id="loginMfaCode"
+                inputMode="text"
+                maxLength={29}
+                onChange={(event) => {
+                  setMfaCode(event.target.value);
+                  setSubmitError('');
+                }}
+                placeholder="000000"
+                value={mfaCode}
+              />
+            </div>
+          </div>
+          <button className="flex h-12 w-full items-center justify-center gap-2 bg-forest px-5 font-semibold text-white hover:bg-forest-dark disabled:opacity-60" disabled={isSubmitting} type="submit">
+            {isSubmitting ? <LoaderCircle aria-hidden="true" className="h-5 w-5 animate-spin" /> : null}
+            {isSubmitting ? 'Verifying' : 'Verify and sign in'}
+          </button>
+          <button
+            className="h-11 w-full border border-gray-300 bg-white px-4 text-sm font-semibold"
+            disabled={isSubmitting}
+            onClick={() => {
+              setRequiresMfa(false);
+              setMfaCode('');
+              setSubmitError('');
+            }}
+            type="button"
+          >
+            Back to password
+          </button>
+        </form>
+      ) : (
       <form className="space-y-5" noValidate onSubmit={handleSubmit}>
         <div>
           <label className="mb-2 block text-sm font-semibold text-ink" htmlFor="loginEmail">
@@ -148,10 +227,12 @@ const LoginForm = () => {
         </button>
       </form>
 
-      <p className="mt-7 border-t border-line pt-6 text-center text-sm text-gray-600">
+      )}
+
+      {!requiresMfa ? <p className="mt-7 border-t border-line pt-6 text-center text-sm text-gray-600">
         Need an account?{' '}
         <Link className="font-semibold text-forest hover:underline" to="/register">Create one</Link>
-      </p>
+      </p> : null}
     </div>
   );
 };

@@ -51,6 +51,26 @@ const userSchema = new Schema(
     },
     mfaSecret: {
       type: String,
+      maxlength: 512,
+      select: false,
+    },
+    mfaRecoveryCodeHashes: {
+      type: [{
+        type: String,
+        match: /^[a-f0-9]{64}$/,
+      }],
+      default: undefined,
+      select: false,
+      validate: {
+        validator(values) {
+          return !values || values.length <= 10;
+        },
+        message: 'MFA recovery-code collection exceeds its maximum size.',
+      },
+    },
+    mfaLastUsedTimeStep: {
+      type: Number,
+      min: 0,
       select: false,
     },
     failedLoginAttempts: {
@@ -85,6 +105,8 @@ userSchema.set('toJSON', {
   transform(document, returnedObject) {
     delete returnedObject.passwordHash;
     delete returnedObject.mfaSecret;
+    delete returnedObject.mfaRecoveryCodeHashes;
+    delete returnedObject.mfaLastUsedTimeStep;
     delete returnedObject.failedLoginAttempts;
     delete returnedObject.lockedUntil;
     delete returnedObject.passwordChangedAt;

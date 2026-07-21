@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { hkdfSync } from 'node:crypto';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -35,6 +36,7 @@ const sessionSecret = process.env.SESSION_SECRET;
 const documentEncryptionKey = process.env.DOCUMENT_ENCRYPTION_KEY;
 const messageEncryptionKey = process.env.MESSAGE_ENCRYPTION_KEY;
 const auditLogHmacKey = process.env.AUDIT_LOG_HMAC_KEY;
+const mfaEncryptionKey = process.env.MFA_ENCRYPTION_KEY;
 
 const parseEncryptionKey = (value, variableName) => {
   if (!value) {
@@ -51,6 +53,27 @@ const parseEncryptionKey = (value, variableName) => {
 
   return key;
 };
+
+const parsedAuditLogHmacKey = parseEncryptionKey(
+  auditLogHmacKey,
+  'AUDIT_LOG_HMAC_KEY',
+);
+
+if (nodeEnv === 'production' && !mfaEncryptionKey) {
+  throw new Error('MFA_ENCRYPTION_KEY is required in production.');
+}
+
+const resolvedMfaEncryptionKey = mfaEncryptionKey
+  ? parseEncryptionKey(mfaEncryptionKey, 'MFA_ENCRYPTION_KEY')
+  : Buffer.from(
+      hkdfSync(
+        'sha256',
+        parsedAuditLogHmacKey,
+        Buffer.from('lexsecure-mfa-salt-v1', 'utf8'),
+        Buffer.from('lexsecure-mfa-encryption-v1', 'utf8'),
+        32,
+      ),
+    );
 
 export const appConfig = Object.freeze({
   env: nodeEnv,
@@ -69,8 +92,6 @@ export const appConfig = Object.freeze({
     messageEncryptionKey,
     'MESSAGE_ENCRYPTION_KEY',
   ),
-  auditLogHmacKey: parseEncryptionKey(
-    auditLogHmacKey,
-    'AUDIT_LOG_HMAC_KEY',
-  ),
+  auditLogHmacKey: parsedAuditLogHmacKey,
+  mfaEncryptionKey: resolvedMfaEncryptionKey,
 });

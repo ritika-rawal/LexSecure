@@ -6,7 +6,12 @@ import { clearCsrfToken, getCsrfToken } from '../security/csrfToken.js';
 const CSRF_HEADER_NAME = 'X-CSRF-Token';
 const CSRF_ERROR_CODE = 'CSRF_TOKEN_INVALID';
 const SAFE_METHODS = new Set(['get', 'head', 'options']);
-const SESSION_CHANGING_PATHS = new Set(['/auth/login', '/auth/logout']);
+const SESSION_CHANGING_PATHS = new Set([
+  '/auth/login',
+  '/auth/logout',
+  '/auth/mfa/verify-login',
+  '/auth/mfa/disable',
+]);
 
 export const httpClient = axios.create({
   baseURL: env.apiBaseUrl,

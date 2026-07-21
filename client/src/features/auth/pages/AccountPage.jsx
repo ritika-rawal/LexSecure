@@ -14,6 +14,7 @@ import { Link } from 'react-router-dom';
 
 import AccountDataExport from '../../export/components/AccountDataExport.jsx';
 import AuthenticatedHeaderActions from '../../notifications/components/AuthenticatedHeaderActions.jsx';
+import MfaSecurityPanel from '../components/MfaSecurityPanel.jsx';
 import { USER_ROLES } from '../constants/userRoles.js';
 import { useAuth } from '../hooks/useAuth.js';
 
@@ -143,6 +144,7 @@ const AccountPage = () => {
             ))}
           </dl>
         </section>
+        <MfaSecurityPanel />
         <AccountDataExport />
       </div>
     </main>

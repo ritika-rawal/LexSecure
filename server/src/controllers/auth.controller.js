@@ -7,8 +7,8 @@ import {
 } from '../constants/audit.js';
 import { User } from '../models/User.model.js';
 import { recordAuditEventWithoutBlocking } from '../services/audit.service.js';
+import { establishAuthenticatedSession } from '../services/authentication-session.service.js';
 import {
-  clearFailedLoginAttempts,
   isLoginLocked,
   recordFailedLoginAttempt,
 } from '../services/login-security.service.js';
@@ -19,6 +19,7 @@ import {
 } from '../utils/password.js';
 import { buildSafeUserResponse } from '../utils/safe-user.js';
 import { destroySession, regenerateSession, saveSession } from '../utils/session.js';
+import { MFA_LIMITS } from '../constants/mfa.js';
 
 const createInvalidCredentialsError = () => {
   const error = new Error('Invalid email or password.');
@@ -132,13 +133,25 @@ export const loginUser = async (req, res) => {
     throw createInvalidCredentialsError();
   }
 
-  const lastLoginAt = new Date();
-  await clearFailedLoginAttempts(user._id, lastLoginAt);
-  user.lastLoginAt = lastLoginAt;
+  if (user.mfaEnabled) {
+    await regenerateSession(req);
+    req.session.mfaChallenge = {
+      userId: user.id,
+      attempts: 0,
+      expiresAt: Date.now() + MFA_LIMITS.LOGIN_CHALLENGE_EXPIRY_MS,
+    };
+    await saveSession(req);
 
-  await regenerateSession(req);
-  req.session.user = { id: user.id, role: user.role };
-  await saveSession(req);
+    res.set('Cache-Control', 'private, no-store');
+    res.status(202).json({
+      status: 'success',
+      message: 'Additional authentication is required.',
+      data: { requiresMfa: true },
+    });
+    return;
+  }
+
+  await establishAuthenticatedSession({ req, user });
 
   await recordAuditEventWithoutBlocking({
     req,
