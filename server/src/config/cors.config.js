@@ -14,7 +14,7 @@ export const corsOptions = {
     callback(new Error('CORS policy does not allow this origin.'));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
   credentials: true,
   optionsSuccessStatus: 204,
 };

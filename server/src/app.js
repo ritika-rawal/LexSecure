@@ -9,6 +9,7 @@ import { helmetOptions } from './config/helmet.config.js';
 import { createSessionOptions } from './config/session.config.js';
 import accountExportRoutes from './routes/account-export.routes.js';
 import { auditContextMiddleware } from './middleware/audit-context.middleware.js';
+import { csrfProtectionMiddleware } from './middleware/csrf.middleware.js';
 import { errorMiddleware } from './middleware/error.middleware.js';
 import { notFoundMiddleware } from './middleware/not-found.middleware.js';
 import adminAuditRoutes from './routes/admin-audit.routes.js';
@@ -47,6 +48,9 @@ app.use(session(createSessionOptions()));
  * Cookies are HTTP-only, which prevents browser JavaScript from reading them.
  */
 app.use(session(createSessionOptions()));
+
+// All state-changing routes require a token bound to the current server session.
+app.use(csrfProtectionMiddleware);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/account', accountExportRoutes);
