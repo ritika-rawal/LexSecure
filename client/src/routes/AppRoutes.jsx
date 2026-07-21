@@ -59,6 +59,7 @@ const AppRoutes = () => {
         <Route path="/lawyer/schedule" element={<AppointmentDashboardPage />} />
       </Route>
       <Route element={<ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]} />}>
+        <Route path="/admin/account" element={<AccountPage />} />
         <Route path="/admin/audit-logs" element={<AuditLogPage />} />
         <Route path="/admin/lawyer-profiles" element={<LawyerReviewPage />} />
       </Route>

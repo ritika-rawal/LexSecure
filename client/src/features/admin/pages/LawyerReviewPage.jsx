@@ -9,6 +9,7 @@ import {
   LoaderCircle,
   RefreshCw,
   Scale,
+  UserRound,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -118,6 +119,14 @@ const LawyerReviewPage = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Link
+              aria-label="Admin account security"
+              className="grid h-10 w-10 place-items-center border border-gray-300 bg-white hover:bg-gray-100"
+              title="Account security"
+              to="/admin/account"
+            >
+              <UserRound aria-hidden="true" className="h-4 w-4" />
+            </Link>
             <Link
               className="flex h-10 items-center gap-2 border border-gray-300 bg-white px-3 text-sm font-semibold hover:bg-gray-100"
               to="/admin/audit-logs"

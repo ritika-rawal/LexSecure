@@ -216,7 +216,9 @@ const MfaSecurityPanel = () => {
       {recoveryCodes.length > 0 ? (
         <div className="border-t border-line px-5 py-6 sm:px-7">
           <h3 className="font-bold">Recovery codes</h3>
-          <p className="mt-2 text-sm text-gray-600">Each code can be used once. They will not be shown again.</p>
+          <p className="mt-2 text-sm leading-6 text-gray-600">
+            Save these codes now. Do not enter them on this page. Each one is an emergency sign-in code that can be used once if your authenticator is unavailable.
+          </p>
           <ul className="mt-4 grid gap-2 font-mono text-sm sm:grid-cols-2">
             {recoveryCodes.map((code) => <li className="border border-line bg-gray-50 px-3 py-2" key={code}>{code}</li>)}
           </ul>
@@ -230,6 +232,9 @@ const MfaSecurityPanel = () => {
 
       {isDisabling ? (
         <div className="border-t border-line px-5 py-6 sm:px-7">
+          <p className="mb-4 max-w-2xl text-sm text-red-700">
+            This action removes two-factor protection. Continue only when you intentionally want to disable MFA.
+          </p>
           <div className="grid max-w-2xl gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-semibold" htmlFor="mfa-disable-password">Current password</label>
