@@ -5,15 +5,21 @@ import {
   Mail,
   Inbox,
   CalendarRange,
+  ClipboardCheck,
   Scale,
+  ScrollText,
   Search,
   ShieldCheck,
+  ShieldBan,
   UserRound,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import AccountDataExport from '../../export/components/AccountDataExport.jsx';
+import AccountDataImport from '../../export/components/AccountDataImport.jsx';
 import AuthenticatedHeaderActions from '../../notifications/components/AuthenticatedHeaderActions.jsx';
+import MfaSecurityPanel from '../components/MfaSecurityPanel.jsx';
+import PasswordSecurityPanel from '../components/PasswordSecurityPanel.jsx';
 import { USER_ROLES } from '../constants/userRoles.js';
 import { useAuth } from '../hooks/useAuth.js';
 
@@ -122,6 +128,49 @@ const AccountPage = () => {
             </Link>
           </div>
         ) : null}
+        {user.role === USER_ROLES.ADMIN ? (
+          <div className="mb-8 grid gap-3 md:grid-cols-3">
+            <Link
+              className="flex items-center justify-between gap-4 border-l-4 border-forest bg-white px-5 py-5 hover:bg-emerald-50 sm:px-7"
+              to="/admin/lawyer-profiles"
+            >
+              <span className="flex items-center gap-3">
+                <ClipboardCheck aria-hidden="true" className="h-5 w-5 text-forest" />
+                <span>
+                  <span className="block font-bold">Lawyer reviews</span>
+                  <span className="mt-1 block text-sm text-gray-600">Review pending professional profiles</span>
+                </span>
+              </span>
+              <ChevronRight aria-hidden="true" className="h-5 w-5 text-gray-500" />
+            </Link>
+            <Link
+              className="flex items-center justify-between gap-4 border-l-4 border-forest bg-white px-5 py-5 hover:bg-emerald-50 sm:px-7"
+              to="/admin/audit-logs"
+            >
+              <span className="flex items-center gap-3">
+                <ScrollText aria-hidden="true" className="h-5 w-5 text-forest" />
+                <span>
+                  <span className="block font-bold">Security audit logs</span>
+                  <span className="mt-1 block text-sm text-gray-600">Inspect protected platform events</span>
+                </span>
+              </span>
+              <ChevronRight aria-hidden="true" className="h-5 w-5 text-gray-500" />
+            </Link>
+            <Link
+              className="flex items-center justify-between gap-4 border-l-4 border-forest bg-white px-5 py-5 hover:bg-emerald-50 sm:px-7"
+              to="/admin/ip-access"
+            >
+              <span className="flex items-center gap-3">
+                <ShieldBan aria-hidden="true" className="h-5 w-5 text-forest" />
+                <span>
+                  <span className="block font-bold">IP access policy</span>
+                  <span className="mt-1 block text-sm text-gray-600">Manage trusted and blocked networks</span>
+                </span>
+              </span>
+              <ChevronRight aria-hidden="true" className="h-5 w-5 text-gray-500" />
+            </Link>
+          </div>
+        ) : null}
         <section className="border-t border-line bg-white" aria-labelledby="account-heading">
           <div className="border-b border-line px-5 py-5 sm:px-7">
             <h2 id="account-heading" className="text-lg font-bold">Account details</h2>
@@ -143,7 +192,14 @@ const AccountPage = () => {
             ))}
           </dl>
         </section>
-        <AccountDataExport />
+        <PasswordSecurityPanel />
+        <MfaSecurityPanel />
+        {user.role !== USER_ROLES.ADMIN ? (
+          <>
+            <AccountDataExport />
+            <AccountDataImport />
+          </>
+        ) : null}
       </div>
     </main>
   );

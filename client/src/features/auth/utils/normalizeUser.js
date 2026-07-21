@@ -19,6 +19,7 @@ export const normalizeUser = (user) => {
     isActive: Boolean(user.isActive),
     isEmailVerified: Boolean(user.isEmailVerified),
     mfaEnabled: Boolean(user.mfaEnabled),
+    passwordExpiresAt: user.passwordExpiresAt || null,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   });

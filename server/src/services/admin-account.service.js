@@ -1,6 +1,7 @@
 import { USER_ROLES } from '../constants/user-roles.js';
 import { User } from '../models/User.model.js';
 import { hashPassword } from '../utils/password.js';
+import { getPasswordExpiresAt } from './password-policy.service.js';
 import { validateAdminAccountInput } from '../validators/admin-account.validator.js';
 
 const createDuplicateAccountError = () => {
@@ -17,12 +18,15 @@ export const createInitialAdmin = async (input) => {
   }
 
   const passwordHash = await hashPassword(password);
+  const passwordChangedAt = new Date();
 
   try {
     return await User.create({
       fullName,
       email,
       passwordHash,
+      passwordChangedAt,
+      passwordExpiresAt: getPasswordExpiresAt(passwordChangedAt),
       role: USER_ROLES.ADMIN,
       isActive: true,
     });

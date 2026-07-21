@@ -1,0 +1,14 @@
+.git
+.github
+.npm-cache
+**/node_modules
+**/dist
+**/.env
+**/.env.*
+!.env.docker.example
+!**/.env.example
+docs
+*.log
+npm-debug.log*
+server/storage/documents/*
+!server/storage/documents/.gitkeep

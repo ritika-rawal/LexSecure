@@ -1,0 +1,130 @@
+name: Security CI
+
+on:
+  push:
+    branches:
+      - main
+      - Sprint1
+      - Sprint2
+      - Sprint3
+      - Sprint4
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-audit:
+    name: Build and dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Configure Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Align npm audit engine
+        run: npm install --global npm@11.0.0
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=moderate
+
+      - name: Audit all dependencies
+        run: npm audit --audit-level=high
+
+      - name: Validate backend JavaScript syntax
+        shell: bash
+        run: >-
+          find server/src server/scripts -type f -name '*.js' -print0
+          | xargs -0 -n1 node --check
+
+      - name: Build frontend production bundle
+        run: npm run build --workspace=@lexsecure/frontend
+
+      - name: Retain frontend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lexsecure-client-${{ github.sha }}
+          path: client/dist
+          if-no-files-found: error
+          retention-days: 7
+
+  codeql:
+    name: CodeQL analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+
+      - name: Configure Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Align npm version
+        run: npm install --global npm@11.0.0
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Build analyzed frontend
+        run: npm run build --workspace=@lexsecure/frontend
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:javascript-typescript
+
+  dependency-review:
+    name: Pull request dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Reject vulnerable dependency changes
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate

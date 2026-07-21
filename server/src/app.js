@@ -6,12 +6,18 @@ import helmet from 'helmet';
 import { appConfig } from './config/app.config.js';
 import { corsOptions } from './config/cors.config.js';
 import { helmetOptions } from './config/helmet.config.js';
+import { apiRateLimiter } from './config/rate-limit.config.js';
 import { createSessionOptions } from './config/session.config.js';
 import accountExportRoutes from './routes/account-export.routes.js';
+import accountImportRoutes from './routes/account-import.routes.js';
 import { auditContextMiddleware } from './middleware/audit-context.middleware.js';
+import { csrfProtectionMiddleware } from './middleware/csrf.middleware.js';
 import { errorMiddleware } from './middleware/error.middleware.js';
 import { notFoundMiddleware } from './middleware/not-found.middleware.js';
+import { securityHeadersMiddleware } from './middleware/security-headers.middleware.js';
+import { enforceIpAccessPolicy } from './middleware/ip-access.middleware.js';
 import adminAuditRoutes from './routes/admin-audit.routes.js';
+import adminIpAccessRoutes from './routes/admin-ip-access.routes.js';
 import adminLawyerProfileRoutes from './routes/admin-lawyer-profile.routes.js';
 import appointmentRoutes from './routes/appointment.routes.js';
 import authRoutes from './routes/auth.routes.js';
@@ -21,18 +27,23 @@ import lawyerProfileRoutes from './routes/lawyer-profile.routes.js';
 import messageRoutes from './routes/message.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import reviewRoutes from './routes/review.routes.js';
+import { asyncHandler } from './utils/async-handler.js';
 
 const app = express();
 
 app.disable('x-powered-by');
 
-if (appConfig.isProduction) {
-  app.set('trust proxy', 1);
+if (appConfig.trustProxyHops > 0) {
+  app.set('trust proxy', appConfig.trustProxyHops);
 }
 
 app.use(helmet(helmetOptions));
+app.use(securityHeadersMiddleware);
 app.use(cors(corsOptions));
 app.use(auditContextMiddleware);
+app.use('/api', apiRateLimiter);
+// Resolve trusted proxy settings before this point so req.ip cannot be client-spoofed.
+app.use('/api', asyncHandler(enforceIpAccessPolicy));
 
 /*
  * Limit request body size early to reduce accidental memory pressure and make
@@ -40,20 +51,25 @@ app.use(auditContextMiddleware);
  */
 app.use(express.json({ limit: appConfig.jsonBodyLimit }));
 app.use(express.urlencoded({ extended: false, limit: appConfig.jsonBodyLimit }));
-app.use(session(createSessionOptions()));
 
 /*
- * Sessions are stored in MongoDB so authentication state is not kept in memory.
- * Cookies are HTTP-only, which prevents browser JavaScript from reading them.
+ * Initialize exactly one session boundary before CSRF and application routes.
+ * Sessions use MongoDB rather than process memory, while HTTP-only cookies keep
+ * the session identifier unavailable to browser JavaScript.
  */
 app.use(session(createSessionOptions()));
 
+// All state-changing routes require a token bound to the current server session.
+app.use(csrfProtectionMiddleware);
+
 app.use('/api/auth', authRoutes);
 app.use('/api/account', accountExportRoutes);
+app.use('/api/account', accountImportRoutes);
 app.use('/api', documentRoutes);
 app.use('/api', messageRoutes);
 app.use('/api', reviewRoutes);
 app.use('/api/admin/audit-logs', adminAuditRoutes);
+app.use('/api/admin/ip-access-rules', adminIpAccessRoutes);
 app.use('/api/admin/lawyer-profiles', adminLawyerProfileRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/lawyer-profiles', lawyerProfileRoutes);

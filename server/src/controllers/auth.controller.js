@@ -7,6 +7,14 @@ import {
 } from '../constants/audit.js';
 import { User } from '../models/User.model.js';
 import { recordAuditEventWithoutBlocking } from '../services/audit.service.js';
+import { establishAuthenticatedSession } from '../services/authentication-session.service.js';
+import {
+  isLoginLocked,
+  isLoginCaptchaRequired,
+  recordFailedLoginAttempt,
+  recordSessionLoginFailure,
+} from '../services/login-security.service.js';
+import { verifyCaptchaToken } from '../services/captcha.service.js';
 import {
   DUMMY_PASSWORD_HASH,
   hashPassword,
@@ -14,11 +22,56 @@ import {
 } from '../utils/password.js';
 import { buildSafeUserResponse } from '../utils/safe-user.js';
 import { destroySession, regenerateSession, saveSession } from '../utils/session.js';
+import { MFA_LIMITS } from '../constants/mfa.js';
+import {
+  CAPTCHA_ERROR_CODES,
+  LOGIN_SECURITY_LIMITS,
+} from '../constants/authentication-security.js';
+import {
+  getPasswordExpiresAt,
+  isPasswordExpired,
+  PASSWORD_POLICY_ERROR_CODES,
+} from '../services/password-policy.service.js';
 
 const createInvalidCredentialsError = () => {
   const error = new Error('Invalid email or password.');
   error.statusCode = 401;
   return error;
+};
+
+const createCaptchaError = ({ code, message }) => {
+  const error = new Error(message);
+  error.statusCode = 403;
+  error.publicCode = code;
+  return error;
+};
+
+const requireValidCaptchaWhenChallenged = async (req) => {
+  const sourceFailureCount = req.rateLimit?.used;
+  const sourceRequiresCaptcha =
+    Number.isInteger(sourceFailureCount)
+    && sourceFailureCount > LOGIN_SECURITY_LIMITS.CAPTCHA_AFTER_SESSION_FAILURES;
+
+  if (!sourceRequiresCaptcha && !isLoginCaptchaRequired(req.session)) return;
+
+  if (!req.body.captchaToken) {
+    throw createCaptchaError({
+      code: CAPTCHA_ERROR_CODES.REQUIRED,
+      message: 'Complete the security verification and try again.',
+    });
+  }
+
+  const isValid = await verifyCaptchaToken({
+    token: req.body.captchaToken,
+    remoteIp: req.ip,
+  });
+
+  if (!isValid) {
+    throw createCaptchaError({
+      code: CAPTCHA_ERROR_CODES.INVALID,
+      message: 'Security verification failed. Complete a new challenge.',
+    });
+  }
 };
 
 export const registerUser = async (req, res) => {
@@ -34,6 +87,7 @@ export const registerUser = async (req, res) => {
   }
 
   const passwordHash = await hashPassword(password);
+  const passwordChangedAt = new Date();
 
   let user;
 
@@ -42,6 +96,8 @@ export const registerUser = async (req, res) => {
       fullName,
       email: normalizedEmail,
       passwordHash,
+      passwordChangedAt,
+      passwordExpiresAt: getPasswordExpiresAt(passwordChangedAt),
       role,
     });
   } catch (error) {
@@ -76,11 +132,24 @@ export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   const normalizedEmail = email.toLowerCase();
 
-  const user = await User.findOne({ email: normalizedEmail }).select('+passwordHash');
+  await requireValidCaptchaWhenChallenged(req);
+
+  const user = await User.findOne({ email: normalizedEmail }).select(
+    '+passwordHash +failedLoginAttempts +lockedUntil +authVersion +passwordChangedAt +passwordExpiresAt',
+  );
   const passwordHash = user?.passwordHash || DUMMY_PASSWORD_HASH;
   const passwordMatches = await verifyPassword(password, passwordHash);
+  const accountIsLocked = isLoginLocked(user);
 
-  if (!user || !passwordMatches) {
+  let becameLocked = false;
+
+  if (user && !passwordMatches && !accountIsLocked) {
+    ({ becameLocked } = await recordFailedLoginAttempt(user._id));
+  }
+
+  if (!user || !passwordMatches || accountIsLocked) {
+    const captchaIsNowRequired = await recordSessionLoginFailure(req);
+
     await recordAuditEventWithoutBlocking({
       req,
       actorRole: AUDIT_ACTOR_ROLES.ANONYMOUS,
@@ -89,10 +158,31 @@ export const loginUser = async (req, res) => {
       targetType: AUDIT_TARGET_TYPES.USER,
       subject: normalizedEmail,
     });
-    throw createInvalidCredentialsError();
+
+    if (becameLocked) {
+      await recordAuditEventWithoutBlocking({
+        req,
+        actorRole: AUDIT_ACTOR_ROLES.ANONYMOUS,
+        action: AUDIT_ACTIONS.ACCOUNT_LOCKED,
+        outcome: AUDIT_OUTCOMES.FAILURE,
+        targetType: AUDIT_TARGET_TYPES.USER,
+        targetId: user._id,
+        subject: normalizedEmail,
+      });
+    }
+
+    const invalidCredentialsError = createInvalidCredentialsError();
+
+    if (captchaIsNowRequired) {
+      invalidCredentialsError.publicCode = CAPTCHA_ERROR_CODES.REQUIRED;
+    }
+
+    throw invalidCredentialsError;
   }
 
   if (!user.isActive) {
+    const captchaIsNowRequired = await recordSessionLoginFailure(req);
+
     await recordAuditEventWithoutBlocking({
       req,
       actorRole: AUDIT_ACTOR_ROLES.ANONYMOUS,
@@ -102,17 +192,42 @@ export const loginUser = async (req, res) => {
       targetId: user._id,
       subject: normalizedEmail,
     });
-    const error = new Error('This account is disabled.');
+    const invalidCredentialsError = createInvalidCredentialsError();
+
+    if (captchaIsNowRequired) {
+      invalidCredentialsError.publicCode = CAPTCHA_ERROR_CODES.REQUIRED;
+    }
+
+    throw invalidCredentialsError;
+  }
+
+  if (isPasswordExpired(user)) {
+    const error = new Error('Your password has expired. Reset it before signing in.');
     error.statusCode = 403;
+    error.publicCode = PASSWORD_POLICY_ERROR_CODES.EXPIRED;
     throw error;
   }
 
-  await regenerateSession(req);
-  req.session.user = { id: user.id, role: user.role };
+  if (user.mfaEnabled) {
+    await regenerateSession(req);
+    req.session.mfaChallenge = {
+      userId: user.id,
+      authVersion: user.authVersion,
+      attempts: 0,
+      expiresAt: Date.now() + MFA_LIMITS.LOGIN_CHALLENGE_EXPIRY_MS,
+    };
+    await saveSession(req);
 
-  user.lastLoginAt = new Date();
-  await user.save();
-  await saveSession(req);
+    res.set('Cache-Control', 'private, no-store');
+    res.status(202).json({
+      status: 'success',
+      message: 'Additional authentication is required.',
+      data: { requiresMfa: true },
+    });
+    return;
+  }
+
+  await establishAuthenticatedSession({ req, user });
 
   await recordAuditEventWithoutBlocking({
     req,

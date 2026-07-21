@@ -1,14 +1,19 @@
 # Dependencies
 node_modules/
+.npm-cache/
 
 # Environment files may contain secrets and must not be committed.
 .env
 .env.*
 !.env.example
+!.env.docker.example
 
 # Build output
 dist/
 build/
+
+# Coursework reports and local security-audit evidence are maintained locally.
+/docs/
 
 # Logs
 *.log
@@ -16,4 +21,4 @@ npm-debug.log*
 
 # Encrypted document payloads are runtime data, not source artifacts.
 server/storage/documents/*
-!server/storage/documents/.gitkeepf3r
+!server/storage/documents/.gitkeep

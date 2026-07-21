@@ -254,19 +254,14 @@ const AppointmentDocuments = ({
               </div>
 
               {isUploading ? (
-                <div
+                <progress
                   aria-label={`Upload ${uploadProgress}% complete`}
-                  aria-valuemax="100"
-                  aria-valuemin="0"
-                  aria-valuenow={uploadProgress}
-                  className="mt-3 h-1.5 overflow-hidden bg-gray-200"
-                  role="progressbar"
+                  className="mt-3 block h-1.5 w-full accent-forest"
+                  max="100"
+                  value={uploadProgress}
                 >
-                  <div
-                    className="h-full bg-forest transition-[width]"
-                    style={{ width: `${uploadProgress}%` }}
-                  />
-                </div>
+                  {uploadProgress}%
+                </progress>
               ) : null}
 
               {uploadError ? (

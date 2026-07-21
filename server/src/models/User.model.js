@@ -51,6 +51,26 @@ const userSchema = new Schema(
     },
     mfaSecret: {
       type: String,
+      maxlength: 512,
+      select: false,
+    },
+    mfaRecoveryCodeHashes: {
+      type: [{
+        type: String,
+        match: /^[a-f0-9]{64}$/,
+      }],
+      default: undefined,
+      select: false,
+      validate: {
+        validator(values) {
+          return !values || values.length <= 10;
+        },
+        message: 'MFA recovery-code collection exceeds its maximum size.',
+      },
+    },
+    mfaLastUsedTimeStep: {
+      type: Number,
+      min: 0,
       select: false,
     },
     failedLoginAttempts: {
@@ -70,6 +90,39 @@ const userSchema = new Schema(
       type: Date,
       select: false,
     },
+    passwordExpiresAt: {
+      type: Date,
+      select: false,
+    },
+    passwordHistoryHashes: {
+      type: [String],
+      default: undefined,
+      select: false,
+      validate: {
+        validator(values) {
+          return !values || values.length <= 10;
+        },
+        message: 'Password history exceeds its maximum size.',
+      },
+    },
+    authVersion: {
+      type: Number,
+      default: 0,
+      min: 0,
+      required: true,
+      select: false,
+    },
+    passwordResetTokenHash: {
+      type: String,
+      match: /^[a-f0-9]{64}$/,
+      unique: true,
+      sparse: true,
+      select: false,
+    },
+    passwordResetExpiresAt: {
+      type: Date,
+      select: false,
+    },
   },
   {
     timestamps: true,
@@ -85,9 +138,16 @@ userSchema.set('toJSON', {
   transform(document, returnedObject) {
     delete returnedObject.passwordHash;
     delete returnedObject.mfaSecret;
+    delete returnedObject.mfaRecoveryCodeHashes;
+    delete returnedObject.mfaLastUsedTimeStep;
     delete returnedObject.failedLoginAttempts;
     delete returnedObject.lockedUntil;
     delete returnedObject.passwordChangedAt;
+    delete returnedObject.passwordExpiresAt;
+    delete returnedObject.passwordHistoryHashes;
+    delete returnedObject.authVersion;
+    delete returnedObject.passwordResetTokenHash;
+    delete returnedObject.passwordResetExpiresAt;
     return returnedObject;
   },
 });

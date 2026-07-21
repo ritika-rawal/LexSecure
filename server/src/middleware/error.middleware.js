@@ -17,7 +17,11 @@ export const errorMiddleware = (error, req, res, next) => {
     response.details = error.details;
   }
 
-  if (!appConfig.isProduction) {
+  if (error.publicCode) {
+    response.code = error.publicCode;
+  }
+
+  if (appConfig.exposeErrorDetails) {
     response.stack = error.stack;
   }
 

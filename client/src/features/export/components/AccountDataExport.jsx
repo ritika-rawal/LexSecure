@@ -42,10 +42,10 @@ const AccountDataExport = () => {
             <FileJson aria-hidden="true" className="h-5 w-5" />
           </span>
           <div>
-            <h2 className="font-bold" id="data-export-heading">Account data export</h2>
+            <h2 className="font-bold" id="data-export-heading">Export my data</h2>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-600">
-              Download your account, professional profile, and appointment history as JSON.
-              Confidential documents, messages, passwords, and security records are excluded.
+              Download a machine-readable copy of your account and appointment history.
+              It does not contain passwords, documents, messages, or security records.
             </p>
           </div>
         </div>
@@ -60,7 +60,7 @@ const AccountDataExport = () => {
           ) : (
             <Download aria-hidden="true" className="h-4 w-4" />
           )}
-          {isDownloading ? 'Preparing export' : 'Download JSON'}
+          {isDownloading ? 'Preparing export' : 'Download my data'}
         </button>
       </div>
 

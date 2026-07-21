@@ -1,3 +1,5 @@
+import { validateStrongPassword } from './password.validation.js';
+
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ALLOWED_ROLES = new Set(['client', 'lawyer']);
 
@@ -14,17 +16,8 @@ export const validateRegistration = (values) => {
     errors.email = 'Enter a valid email address.';
   }
 
-  if (values.password.length < 12 || values.password.length > 128) {
-    errors.password = 'Password must be between 12 and 128 characters.';
-  } else if (!/[a-z]/.test(values.password)) {
-    errors.password = 'Password must include a lowercase letter.';
-  } else if (!/[A-Z]/.test(values.password)) {
-    errors.password = 'Password must include an uppercase letter.';
-  } else if (!/[0-9]/.test(values.password)) {
-    errors.password = 'Password must include a number.';
-  } else if (!/[^A-Za-z0-9]/.test(values.password)) {
-    errors.password = 'Password must include a symbol.';
-  }
+  const passwordError = validateStrongPassword(values.password);
+  if (passwordError) errors.password = passwordError;
 
   if (!values.confirmPassword) {
     errors.confirmPassword = 'Confirm your password.';
