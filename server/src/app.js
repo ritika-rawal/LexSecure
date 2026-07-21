@@ -13,6 +13,7 @@ import { auditContextMiddleware } from './middleware/audit-context.middleware.js
 import { csrfProtectionMiddleware } from './middleware/csrf.middleware.js';
 import { errorMiddleware } from './middleware/error.middleware.js';
 import { notFoundMiddleware } from './middleware/not-found.middleware.js';
+import { securityHeadersMiddleware } from './middleware/security-headers.middleware.js';
 import adminAuditRoutes from './routes/admin-audit.routes.js';
 import adminLawyerProfileRoutes from './routes/admin-lawyer-profile.routes.js';
 import appointmentRoutes from './routes/appointment.routes.js';
@@ -33,6 +34,7 @@ if (appConfig.isProduction) {
 }
 
 app.use(helmet(helmetOptions));
+app.use(securityHeadersMiddleware);
 app.use(cors(corsOptions));
 app.use(auditContextMiddleware);
 app.use('/api', apiRateLimiter);
