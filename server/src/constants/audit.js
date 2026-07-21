@@ -39,6 +39,10 @@ export const AUDIT_ACTIONS = Object.freeze({
   REVIEW_CREATED: 'review.created',
   ACCOUNT_DATA_EXPORTED: 'account.data_exported',
   AUDIT_LOGS_VIEWED: 'audit.logs_viewed',
+  IP_ACCESS_RULE_CREATED: 'ip_access.rule_created',
+  IP_ACCESS_RULE_UPDATED: 'ip_access.rule_updated',
+  IP_ACCESS_RULE_DELETED: 'ip_access.rule_deleted',
+  IP_ACCESS_DENIED: 'ip_access.denied',
 });
 
 export const AUDIT_ACTION_VALUES = Object.freeze(
@@ -62,6 +66,7 @@ export const AUDIT_TARGET_TYPES = Object.freeze({
   MESSAGE: 'message',
   REVIEW: 'review',
   AUDIT_LOG: 'audit_log',
+  IP_ACCESS_RULE: 'ip_access_rule',
 });
 
 export const AUDIT_TARGET_TYPE_VALUES = Object.freeze(

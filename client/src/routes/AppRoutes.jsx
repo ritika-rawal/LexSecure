@@ -21,6 +21,7 @@ import LawyerAppointmentInboxPage from '../features/appointments/pages/LawyerApp
 import AppointmentDashboardPage from '../features/appointments/pages/AppointmentDashboardPage.jsx';
 import LawyerReviewPage from '../features/admin/pages/LawyerReviewPage.jsx';
 import AuditLogPage from '../features/admin/pages/AuditLogPage.jsx';
+import IpAccessPage from '../features/admin/pages/IpAccessPage.jsx';
 
 const AppRoutes = () => {
   const { status, user } = useAuth();
@@ -66,6 +67,7 @@ const AppRoutes = () => {
         <Route path="/admin/account" element={<AccountPage />} />
         <Route path="/admin/audit-logs" element={<AuditLogPage />} />
         <Route path="/admin/lawyer-profiles" element={<LawyerReviewPage />} />
+        <Route path="/admin/ip-access" element={<IpAccessPage />} />
       </Route>
       <Route element={<ProtectedRoute allowedRoles={USER_ROLE_VALUES} />}>
         <Route path="/unauthorized" element={<UnauthorizedPage />} />

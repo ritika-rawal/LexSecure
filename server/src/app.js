@@ -14,7 +14,9 @@ import { csrfProtectionMiddleware } from './middleware/csrf.middleware.js';
 import { errorMiddleware } from './middleware/error.middleware.js';
 import { notFoundMiddleware } from './middleware/not-found.middleware.js';
 import { securityHeadersMiddleware } from './middleware/security-headers.middleware.js';
+import { enforceIpAccessPolicy } from './middleware/ip-access.middleware.js';
 import adminAuditRoutes from './routes/admin-audit.routes.js';
+import adminIpAccessRoutes from './routes/admin-ip-access.routes.js';
 import adminLawyerProfileRoutes from './routes/admin-lawyer-profile.routes.js';
 import appointmentRoutes from './routes/appointment.routes.js';
 import authRoutes from './routes/auth.routes.js';
@@ -24,6 +26,7 @@ import lawyerProfileRoutes from './routes/lawyer-profile.routes.js';
 import messageRoutes from './routes/message.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import reviewRoutes from './routes/review.routes.js';
+import { asyncHandler } from './utils/async-handler.js';
 
 const app = express();
 
@@ -38,6 +41,8 @@ app.use(securityHeadersMiddleware);
 app.use(cors(corsOptions));
 app.use(auditContextMiddleware);
 app.use('/api', apiRateLimiter);
+// Resolve trusted proxy settings before this point so req.ip cannot be client-spoofed.
+app.use('/api', asyncHandler(enforceIpAccessPolicy));
 
 /*
  * Limit request body size early to reduce accidental memory pressure and make
@@ -62,6 +67,7 @@ app.use('/api', documentRoutes);
 app.use('/api', messageRoutes);
 app.use('/api', reviewRoutes);
 app.use('/api/admin/audit-logs', adminAuditRoutes);
+app.use('/api/admin/ip-access-rules', adminIpAccessRoutes);
 app.use('/api/admin/lawyer-profiles', adminLawyerProfileRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/lawyer-profiles', lawyerProfileRoutes);

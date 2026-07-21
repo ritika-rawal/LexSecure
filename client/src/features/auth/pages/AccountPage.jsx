@@ -10,6 +10,7 @@ import {
   ScrollText,
   Search,
   ShieldCheck,
+  ShieldBan,
   UserRound,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -127,7 +128,7 @@ const AccountPage = () => {
           </div>
         ) : null}
         {user.role === USER_ROLES.ADMIN ? (
-          <div className="mb-8 grid gap-3 md:grid-cols-2">
+          <div className="mb-8 grid gap-3 md:grid-cols-3">
             <Link
               className="flex items-center justify-between gap-4 border-l-4 border-forest bg-white px-5 py-5 hover:bg-emerald-50 sm:px-7"
               to="/admin/lawyer-profiles"
@@ -150,6 +151,19 @@ const AccountPage = () => {
                 <span>
                   <span className="block font-bold">Security audit logs</span>
                   <span className="mt-1 block text-sm text-gray-600">Inspect protected platform events</span>
+                </span>
+              </span>
+              <ChevronRight aria-hidden="true" className="h-5 w-5 text-gray-500" />
+            </Link>
+            <Link
+              className="flex items-center justify-between gap-4 border-l-4 border-forest bg-white px-5 py-5 hover:bg-emerald-50 sm:px-7"
+              to="/admin/ip-access"
+            >
+              <span className="flex items-center gap-3">
+                <ShieldBan aria-hidden="true" className="h-5 w-5 text-forest" />
+                <span>
+                  <span className="block font-bold">IP access policy</span>
+                  <span className="mt-1 block text-sm text-gray-600">Manage trusted and blocked networks</span>
                 </span>
               </span>
               <ChevronRight aria-hidden="true" className="h-5 w-5 text-gray-500" />
