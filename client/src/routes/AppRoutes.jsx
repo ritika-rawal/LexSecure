@@ -22,6 +22,7 @@ import AppointmentDashboardPage from '../features/appointments/pages/Appointment
 import LawyerReviewPage from '../features/admin/pages/LawyerReviewPage.jsx';
 import AuditLogPage from '../features/admin/pages/AuditLogPage.jsx';
 import IpAccessPage from '../features/admin/pages/IpAccessPage.jsx';
+import LandingPage from '../features/home/pages/LandingPage.jsx';
 
 const AppRoutes = () => {
   const { status, user } = useAuth();
@@ -44,6 +45,7 @@ const AppRoutes = () => {
 
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route element={<PublicOnlyRoute />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
@@ -72,7 +74,7 @@ const AppRoutes = () => {
       <Route element={<ProtectedRoute allowedRoles={USER_ROLE_VALUES} />}>
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
       </Route>
-      <Route path="*" element={<Navigate replace to={user ? getRoleHomePath(user.role) : '/login'} />} />
+      <Route path="*" element={<Navigate replace to={user ? getRoleHomePath(user.role) : '/'} />} />
     </Routes>
   );
 };

@@ -14,6 +14,9 @@ export default {
       boxShadow: {
         panel: '0 18px 50px rgba(22, 33, 29, 0.10)',
       },
+      fontFamily: {
+        display: ['Georgia', 'Cambria', 'Times New Roman', 'serif'],
+      },
     },
   },
   plugins: [],
