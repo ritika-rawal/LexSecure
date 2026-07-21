@@ -7,7 +7,7 @@
 | Sprint | Sprint 3 - Documents, Communication, and Administration |
 | Goal | Deliver secure collaboration between clients and lawyers |
 | Functional status | In progress |
-| Current increment | Administrator audit-log monitoring |
+| Current increment | Verified consultation reviews and ratings |
 | Security status | Design review complete for this increment; dynamic audit remains |
 | Audit type | Continuous white-box review |
 
@@ -23,9 +23,13 @@ messages are accepted only after the lawyer approves the appointment. Both
 roles use an escaped-text conversation panel inside their appointment
 dashboard.
 
-This report is intentionally marked in progress. Message notifications, audit
-log hardening, additional approved coursework features, and dynamic security
-evidence are not yet complete.
+The current increment adds verified consultation reviews. Only the client who
+owns a past approved or completed appointment can submit one immutable review.
+Public responses identify the author only as a verified client and do not
+expose the client or appointment identifiers.
+
+This report is intentionally marked in progress. Security hardening and dynamic
+security evidence are not yet complete.
 
 ## 2. Delivered Functionality
 
@@ -91,6 +95,18 @@ evidence are not yet complete.
   responsive horizontal overflow.
 - Prominent failed-integrity state instead of hiding malformed records.
 - Every successful audit-log view creates its own audit event.
+- One immutable review per eligible appointment.
+- Integer ratings restricted to the range one to five.
+- Optional review comments restricted to 10-1,000 characters.
+- Client ownership and appointment eligibility verified on the server.
+- Database uniqueness enforcement for concurrent duplicate submissions.
+- Public review summaries with bounded pagination.
+- Public reviewer identity minimized to `Verified client`.
+- Public review responses exclude client and appointment identifiers.
+- Private review-status and submission responses disable browser caching.
+- React text-node rendering for review comments with no HTML interpretation
+  sink.
+- Review creation is recorded without storing comment text in the audit log.
 
 ## 3. API Surface
 
@@ -101,6 +117,9 @@ evidence are not yet complete.
 | `GET` | `/api/documents/:documentId/download` | Download and decrypt a document | Assigned client or lawyer |
 | `POST` | `/api/appointments/:appointmentId/messages` | Send one message | Assigned client or lawyer; approved appointment |
 | `GET` | `/api/appointments/:appointmentId/messages` | List message history | Assigned client or lawyer |
+| `GET` | `/api/appointments/:appointmentId/review` | Read review status or the submitted review | Owning client |
+| `POST` | `/api/appointments/:appointmentId/review` | Submit one consultation review | Owning client; past approved/completed appointment |
+| `GET` | `/api/lawyer-profiles/:profileId/reviews` | List verified reviews and rating summary | Public |
 
 The upload request uses `multipart/form-data` with exactly one file in the
 `document` field and no additional form fields.
@@ -154,6 +173,16 @@ The upload request uses `multipart/form-data` with exactly one file in the
 | Hash minimization | Only 12-character correlation references reach the browser | Limits disclosure of pseudonymous tracking values |
 | No-store audit responses | Administrator results disable browser caching | Reduces security telemetry persistence on shared devices |
 | Audited reads | Each successful audit-log listing records `audit.logs_viewed` | Creates accountability for access to security records |
+| Server-derived reviewer | Client identity comes from the authenticated session and owned appointment | Prevents reviewer impersonation and mass assignment |
+| Server-derived lawyer | Lawyer and profile references come from the appointment | Prevents posting a review against an attacker-selected lawyer |
+| Consultation eligibility | Status and end time are checked against server data | Prevents reviews for pending, rejected, cancelled, or future consultations |
+| One review per appointment | Immutable reference plus a unique database index | Limits review fraud and closes concurrent duplicate submissions |
+| Strict review input | Exact body allowlist, integer rating, bounded comment, and control-character rejection | Reduces mass assignment, parser ambiguity, and unbounded stored content |
+| Public identity minimization | Reviewer is labelled generically and client/appointment IDs are omitted | Reduces personal-data disclosure and appointment correlation |
+| Approved profile check | Public listing reuses the approved, active lawyer-profile boundary | Prevents reviews exposing hidden or inactive profiles |
+| Escaped review rendering | React renders comment values as text nodes | Reduces stored-XSS risk in the intended frontend |
+| Immutable review history | No update or delete route is exposed and schema fields are immutable | Preserves evidential consistency and limits post-publication tampering |
+| Review audit minimization | Creation event contains review ID but no rating or comment | Provides accountability without copying user content into security logs |
 
 ## 5. Files Added or Modified in This Increment
 
@@ -227,6 +256,23 @@ The upload request uses `multipart/form-data` with exactly one file in the
 | `client/src/features/admin/pages/AuditLogPage.jsx` | Read-only table, integrity status, pagination, and error states |
 | `client/src/features/admin/pages/LawyerReviewPage.jsx` | Adds navigation to security audit logs |
 | `client/src/routes/AppRoutes.jsx` | Registers the admin-protected audit-log page |
+| `server/src/constants/review.js` | Central rating, comment, and pagination limits |
+| `server/src/models/Review.model.js` | Immutable, appointment-unique review schema and indexes |
+| `server/src/utils/safe-review.js` | Separate private and public response mappings |
+| `server/src/validators/review.validator.js` | Exact-field, identifier, rating, comment, and query validation |
+| `server/src/services/review.service.js` | Ownership, eligibility, uniqueness, and public aggregation rules |
+| `server/src/controllers/review.controller.js` | REST responses, private cache prevention, and review audit event |
+| `server/src/routes/review.routes.js` | Client-only submission/status and public listing endpoints |
+| `server/src/constants/audit.js` | Adds the allowlisted review creation action and target type |
+| `server/src/app.js` | Registers review routes |
+| `client/src/features/reviews/constants/review.js` | Mirrors review UI limits and page size |
+| `client/src/features/reviews/api/review.api.js` | Review status, submission, and public-list requests |
+| `client/src/features/reviews/utils/review.js` | Client-side review validation and date formatting |
+| `client/src/features/reviews/components/StarRating.jsx` | Accessible interactive and read-only star control |
+| `client/src/features/reviews/components/AppointmentReview.jsx` | Eligible-client review form and immutable submitted state |
+| `client/src/features/reviews/components/LawyerReviews.jsx` | Public rating summary, review list, and pagination |
+| `client/src/features/appointments/components/DashboardAppointmentItem.jsx` | Shows review controls after an eligible client consultation |
+| `client/src/features/lawyers/pages/PublicLawyerProfilePage.jsx` | Displays verified public reviews on a lawyer profile |
 
 ## 6. Known Gaps and Audit Targets
 
@@ -260,6 +306,11 @@ The upload request uses `multipart/form-data` with exactly one file in the
 | Audit volume | Failed-login events can grow without baseline throttling | Add rate limiting, capacity monitoring, and protected archival |
 | Message key lifecycle | Separate environment key is required | Define rotation, key versioning, backup, and recovery |
 | Message retention | Messages are immutable indefinitely | Define retention and legally authorized deletion policy |
+| Review moderation | Reviews publish without an administrator moderation/reporting workflow | Define abuse reporting, moderation authority, and evidence retention |
+| Review disputes | No no-show, disputed-consultation, or appeal state exists | Define when an otherwise approved past appointment should be ineligible |
+| Review lifecycle | Reviews cannot be corrected or withdrawn | Define a privacy-safe correction, withdrawal, and legal-retention policy |
+| Lawyer response | Lawyers cannot respond to reviews | Add only if required, with strict ownership and content controls |
+| Rating discovery | Lawyer directory does not sort or filter by rating | Add only if required and guard against ranking manipulation |
 
 The existing cross-sprint findings in `docs/SECURITY_BUG_REPORT.md`, including
 missing abuse controls, CSRF coverage, and duplicate session middleware, remain
@@ -327,6 +378,24 @@ open. They have not been silently fixed as part of this feature increment.
     `audit.logs_viewed` event.
 38. Verify audit responses include `private, no-store` and that filtering never
     returns records outside the requested range.
+39. Submit a review as the owning client after an approved consultation ends.
+40. Attempt the same submission as the assigned lawyer, an unrelated client,
+    an administrator, and an anonymous user.
+41. Attempt reviews for pending, future approved, rejected, and cancelled
+    appointments.
+42. Send duplicate review requests concurrently and confirm only one record is
+    created.
+43. Reject ratings outside one to five, fractional ratings, short or oversized
+    comments, unsafe controls, and unsupported body/query fields.
+44. Confirm the public response contains no client ID, appointment ID, email,
+    or account name.
+45. Render harmless stored-XSS marker strings and confirm they remain escaped
+    text.
+46. Recalculate the displayed average from controlled review records and
+    confirm pagination does not alter the summary.
+47. Confirm review-status and submission responses use `private, no-store`.
+48. Confirm the review audit event contains the review ID but no rating or
+    comment text.
 
 Only synthetic legal documents should be used during testing.
 
@@ -359,27 +428,39 @@ Only synthetic legal documents should be used during testing.
 - Browser network evidence showing shortened references and no full hashes.
 - Audit event proving administrator access to the audit log was itself logged.
 - Git commit containing this backend increment and its audit report.
+- Burp role-and-appointment-state matrix for review submission.
+- Concurrent duplicate-review requests showing one success and one conflict.
+- Public review response showing minimized reviewer and appointment data.
+- Browser DOM evidence showing a harmless stored-XSS marker remains text.
+- Controlled review records matched to the displayed average rating.
+- Review response headers showing `private, no-store`.
+- Review creation event showing no copied review content.
 
 ## 9. Sprint 3 Work Remaining
 
-1. Add approved coursework features such as reviews only after core
-   confidential workflows are secure.
+1. Confirm whether profile and appointment export is required for the assessed
+   Sprint 3 scope.
 2. Perform the Sprint 3 security-hardening pass.
 3. Execute the dynamic audit matrix and attach evidence.
-4. Convert this report from in-progress to retrospective complete.
+4. Define or formally accept the review moderation and retention limitations.
+5. Convert this report from in-progress to retrospective complete.
 
 ## 10. Current Assessment
 
-The encrypted document and appointment-messaging workflows are ready for the
-next increment but are not yet security closed. Their static
+The encrypted document, appointment-messaging, audit-monitoring, and verified
+review workflows are functionally implemented but are not yet security closed.
+Their static
 design provides bounded parsing, layered file-type checks, participant-scoped
 authorization, non-public encrypted storage, context-bound message encryption,
 integrity verification, safe response mapping, escaped-text rendering, and
-tamper-evident application audit events.
+tamper-evident application audit events. Reviews add server-derived ownership,
+consultation-state verification, database-backed duplicate prevention, and a
+privacy-minimized public response.
 
 The main remaining risks are malicious document content, aggregate storage
 exhaustion, message-volume abuse, missing CSRF and rate-limit controls, key
 lifecycle management, retention, audit-write reconciliation, audit deletion
 detection, notification reconciliation, and unexecuted multi-role dynamic
-testing. Sprint 3 must remain open until those items are either implemented or
-formally recorded as accepted project limitations.
+testing. Review moderation, dispute handling, and withdrawal policy are also
+undefined. Sprint 3 must remain open until those items are either implemented
+or formally recorded as accepted project limitations.

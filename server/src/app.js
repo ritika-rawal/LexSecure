@@ -19,6 +19,7 @@ import healthRoutes from './routes/health.routes.js';
 import lawyerProfileRoutes from './routes/lawyer-profile.routes.js';
 import messageRoutes from './routes/message.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
+import reviewRoutes from './routes/review.routes.js';
 
 const app = express();
 
@@ -49,6 +50,7 @@ app.use(session(createSessionOptions()));
 app.use('/api/auth', authRoutes);
 app.use('/api', documentRoutes);
 app.use('/api', messageRoutes);
+app.use('/api', reviewRoutes);
 app.use('/api/admin/audit-logs', adminAuditRoutes);
 app.use('/api/admin/lawyer-profiles', adminLawyerProfileRoutes);
 app.use('/api/appointments', appointmentRoutes);

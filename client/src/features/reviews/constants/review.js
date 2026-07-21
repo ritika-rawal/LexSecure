@@ -1,0 +1,5 @@
+export const REVIEW_RATING_MINIMUM = 1;
+export const REVIEW_RATING_MAXIMUM = 5;
+export const REVIEW_COMMENT_MINIMUM_LENGTH = 10;
+export const REVIEW_COMMENT_MAXIMUM_LENGTH = 1000;
+export const REVIEW_PAGE_SIZE = 5;

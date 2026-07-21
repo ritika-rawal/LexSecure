@@ -27,6 +27,7 @@ export const AUDIT_ACTIONS = Object.freeze({
   DOCUMENT_UPLOADED: 'document.uploaded',
   DOCUMENT_DOWNLOADED: 'document.downloaded',
   MESSAGE_SENT: 'message.sent',
+  REVIEW_CREATED: 'review.created',
   AUDIT_LOGS_VIEWED: 'audit.logs_viewed',
 });
 
@@ -49,6 +50,7 @@ export const AUDIT_TARGET_TYPES = Object.freeze({
   APPOINTMENT: 'appointment',
   DOCUMENT: 'document',
   MESSAGE: 'message',
+  REVIEW: 'review',
   AUDIT_LOG: 'audit_log',
 });
 
