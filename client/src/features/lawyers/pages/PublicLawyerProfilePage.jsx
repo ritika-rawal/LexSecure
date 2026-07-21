@@ -14,6 +14,7 @@ import { Link, useParams } from 'react-router-dom';
 
 import { getAuthApiError } from '../../auth/utils/apiError.js';
 import AuthenticatedHeaderActions from '../../notifications/components/AuthenticatedHeaderActions.jsx';
+import LawyerReviews from '../../reviews/components/LawyerReviews.jsx';
 import { getPublicLawyerProfile } from '../api/publicLawyer.api.js';
 import {
   formatAvailabilityDay,
@@ -196,6 +197,7 @@ const PublicLawyerProfilePage = () => {
                 ) : null}
               </aside>
             </div>
+            <LawyerReviews profileId={profile.id} />
           </article>
         ) : null}
       </div>

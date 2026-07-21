@@ -1,4 +1,10 @@
 import {
+  AUDIT_ACTIONS,
+  AUDIT_TARGET_TYPES,
+} from '../constants/audit.js';
+import { APPOINTMENT_STATUS } from '../constants/appointment.js';
+import { recordAuthenticatedAuditEvent } from '../services/audit.service.js';
+import {
   cancelAppointment as cancelAppointmentService,
   createAppointment as createAppointmentService,
   listAppointmentsForUser as listAppointmentsForUserService,
@@ -19,6 +25,12 @@ export const createAppointment = async (req, res) => {
   const appointment = await createAppointmentService({
     clientId: req.user.id,
     appointmentData: req.body,
+  });
+
+  await recordAuthenticatedAuditEvent(req, {
+    action: AUDIT_ACTIONS.APPOINTMENT_CREATED,
+    targetType: AUDIT_TARGET_TYPES.APPOINTMENT,
+    targetId: appointment._id,
   });
 
   res.status(201).json({
@@ -51,6 +63,15 @@ export const reviewAppointment = async (req, res) => {
     lawyerId: req.user.id,
     appointmentId: req.params.appointmentId,
     decision: req.body.decision,
+  });
+
+  await recordAuthenticatedAuditEvent(req, {
+    action:
+      req.body.decision === APPOINTMENT_STATUS.APPROVED
+        ? AUDIT_ACTIONS.APPOINTMENT_APPROVED
+        : AUDIT_ACTIONS.APPOINTMENT_REJECTED,
+    targetType: AUDIT_TARGET_TYPES.APPOINTMENT,
+    targetId: appointment._id,
   });
 
   res.status(200).json({
@@ -93,6 +114,12 @@ export const cancelAppointment = async (req, res) => {
     reason: req.body.reason,
   });
 
+  await recordAuthenticatedAuditEvent(req, {
+    action: AUDIT_ACTIONS.APPOINTMENT_CANCELLED,
+    targetType: AUDIT_TARGET_TYPES.APPOINTMENT,
+    targetId: appointment._id,
+  });
+
   res.status(200).json({
     status: 'success',
     message: 'Appointment cancelled successfully.',
@@ -110,6 +137,12 @@ export const rescheduleAppointment = async (req, res) => {
     clientId: req.user.id,
     appointmentId: req.params.appointmentId,
     scheduleData: req.body,
+  });
+
+  await recordAuthenticatedAuditEvent(req, {
+    action: AUDIT_ACTIONS.APPOINTMENT_RESCHEDULED,
+    targetType: AUDIT_TARGET_TYPES.APPOINTMENT,
+    targetId: appointment._id,
   });
 
   res.status(200).json({

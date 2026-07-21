@@ -1,0 +1,2 @@
+export const MESSAGE_MAXIMUM_LENGTH = 2000;
+export const MESSAGE_PAGE_SIZE = 20;

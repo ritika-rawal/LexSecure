@@ -4,6 +4,7 @@ export const NOTIFICATION_TYPES = Object.freeze({
   APPOINTMENT_REJECTED: 'appointment_rejected',
   APPOINTMENT_CANCELLED: 'appointment_cancelled',
   APPOINTMENT_RESCHEDULED: 'appointment_rescheduled',
+  SECURE_MESSAGE_RECEIVED: 'secure_message_received',
 });
 
 export const NOTIFICATION_TYPE_VALUES = Object.freeze(

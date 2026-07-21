@@ -1,5 +1,12 @@
 import { SESSION_COOKIE_NAME, sessionCookieOptions } from '../config/session.config.js';
+import {
+  AUDIT_ACTIONS,
+  AUDIT_ACTOR_ROLES,
+  AUDIT_OUTCOMES,
+  AUDIT_TARGET_TYPES,
+} from '../constants/audit.js';
 import { User } from '../models/User.model.js';
+import { recordAuditEventWithoutBlocking } from '../services/audit.service.js';
 import {
   DUMMY_PASSWORD_HASH,
   hashPassword,
@@ -47,6 +54,15 @@ export const registerUser = async (req, res) => {
     throw error;
   }
 
+  await recordAuditEventWithoutBlocking({
+    req,
+    actorId: user._id,
+    actorRole: user.role,
+    action: AUDIT_ACTIONS.USER_REGISTERED,
+    targetType: AUDIT_TARGET_TYPES.USER,
+    targetId: user._id,
+  });
+
   res.status(201).json({
     status: 'success',
     message: 'User registered successfully.',
@@ -65,10 +81,27 @@ export const loginUser = async (req, res) => {
   const passwordMatches = await verifyPassword(password, passwordHash);
 
   if (!user || !passwordMatches) {
+    await recordAuditEventWithoutBlocking({
+      req,
+      actorRole: AUDIT_ACTOR_ROLES.ANONYMOUS,
+      action: AUDIT_ACTIONS.LOGIN_FAILED,
+      outcome: AUDIT_OUTCOMES.FAILURE,
+      targetType: AUDIT_TARGET_TYPES.USER,
+      subject: normalizedEmail,
+    });
     throw createInvalidCredentialsError();
   }
 
   if (!user.isActive) {
+    await recordAuditEventWithoutBlocking({
+      req,
+      actorRole: AUDIT_ACTOR_ROLES.ANONYMOUS,
+      action: AUDIT_ACTIONS.LOGIN_FAILED,
+      outcome: AUDIT_OUTCOMES.FAILURE,
+      targetType: AUDIT_TARGET_TYPES.USER,
+      targetId: user._id,
+      subject: normalizedEmail,
+    });
     const error = new Error('This account is disabled.');
     error.statusCode = 403;
     throw error;
@@ -81,6 +114,15 @@ export const loginUser = async (req, res) => {
   await user.save();
   await saveSession(req);
 
+  await recordAuditEventWithoutBlocking({
+    req,
+    actorId: user._id,
+    actorRole: user.role,
+    action: AUDIT_ACTIONS.LOGIN_SUCCEEDED,
+    targetType: AUDIT_TARGET_TYPES.USER,
+    targetId: user._id,
+  });
+
   res.status(200).json({
     status: 'success',
     message: 'User logged in successfully.',
@@ -89,8 +131,22 @@ export const loginUser = async (req, res) => {
 };
 
 export const logoutUser = async (req, res) => {
+  const sessionUser = req.session?.user;
+
   await destroySession(req);
   res.clearCookie(SESSION_COOKIE_NAME, sessionCookieOptions);
+
+  if (sessionUser?.id && sessionUser?.role) {
+    await recordAuditEventWithoutBlocking({
+      req,
+      actorId: sessionUser.id,
+      actorRole: sessionUser.role,
+      action: AUDIT_ACTIONS.LOGOUT,
+      targetType: AUDIT_TARGET_TYPES.USER,
+      targetId: sessionUser.id,
+    });
+  }
+
   res.status(204).send();
 };
 

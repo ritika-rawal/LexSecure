@@ -22,6 +22,10 @@ const NOTIFICATION_CONTENT = Object.freeze({
     title: 'Appointment rescheduled',
     message: 'A client requested a new consultation time for your review.',
   }),
+  [NOTIFICATION_TYPES.SECURE_MESSAGE_RECEIVED]: Object.freeze({
+    title: 'New secure message',
+    message: 'You received a new message about an approved appointment.',
+  }),
 });
 
 const createNotificationNotFoundError = () => {

@@ -1,4 +1,9 @@
 import {
+  AUDIT_ACTIONS,
+  AUDIT_TARGET_TYPES,
+} from '../constants/audit.js';
+import { recordAuthenticatedAuditEvent } from '../services/audit.service.js';
+import {
   createLawyerProfile as createLawyerProfileService,
   getLawyerProfile as getLawyerProfileService,
   updateLawyerProfile as updateLawyerProfileService,
@@ -9,6 +14,12 @@ export const createLawyerProfile = async (req, res) => {
   const profile = await createLawyerProfileService({
     lawyerId: req.user.id,
     profileData: req.body,
+  });
+
+  await recordAuthenticatedAuditEvent(req, {
+    action: AUDIT_ACTIONS.LAWYER_PROFILE_CREATED,
+    targetType: AUDIT_TARGET_TYPES.LAWYER_PROFILE,
+    targetId: profile._id,
   });
 
   res.status(201).json({
@@ -35,6 +46,12 @@ export const updateCurrentLawyerProfile = async (req, res) => {
   const profile = await updateLawyerProfileService({
     lawyerId: req.user.id,
     profileData: req.body,
+  });
+
+  await recordAuthenticatedAuditEvent(req, {
+    action: AUDIT_ACTIONS.LAWYER_PROFILE_UPDATED,
+    targetType: AUDIT_TARGET_TYPES.LAWYER_PROFILE,
+    targetId: profile._id,
   });
 
   res.status(200).json({

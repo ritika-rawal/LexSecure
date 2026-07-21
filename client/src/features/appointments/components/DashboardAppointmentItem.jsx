@@ -14,6 +14,9 @@ import {
 } from 'lucide-react';
 
 import { getAuthApiError } from '../../auth/utils/apiError.js';
+import AppointmentDocuments from '../../documents/components/AppointmentDocuments.jsx';
+import AppointmentMessages from '../../messages/components/AppointmentMessages.jsx';
+import AppointmentReview from '../../reviews/components/AppointmentReview.jsx';
 import { cancelAppointment } from '../api/appointmentDashboard.api.js';
 import RescheduleAppointmentForm from './RescheduleAppointmentForm.jsx';
 import {
@@ -51,6 +54,10 @@ const DashboardAppointmentItem = ({ appointment, onChanged }) => {
     viewerIsClient
     && !isExpiredAppointment(appointment.startsAt)
     && ['pending', 'approved'].includes(appointment.status);
+  const canShowReview =
+    viewerIsClient
+    && ['approved', 'completed'].includes(appointment.status)
+    && new Date(appointment.endsAt).getTime() <= Date.now();
 
   const handleCancellation = async () => {
     const normalizedReason = cancellationReason.trim();
@@ -179,6 +186,27 @@ const DashboardAppointmentItem = ({ appointment, onChanged }) => {
               </p>
             ) : null}
           </div>
+
+          <AppointmentMessages
+            appointmentId={appointment.id}
+            appointmentStatus={appointment.status}
+            participantName={appointment.participant.fullName}
+          />
+
+          <AppointmentDocuments
+            appointmentId={appointment.id}
+            canUpload={
+              viewerIsClient
+              && ['pending', 'approved'].includes(appointment.status)
+            }
+          />
+
+          {canShowReview ? (
+            <AppointmentReview
+              appointmentId={appointment.id}
+              lawyerName={appointment.participant.fullName}
+            />
+          ) : null}
 
           {canCancel || canReschedule ? (
             <div className="border-t border-line px-5 py-4 sm:px-6">
