@@ -7,6 +7,7 @@ import { appConfig } from './config/app.config.js';
 import { corsOptions } from './config/cors.config.js';
 import { helmetOptions } from './config/helmet.config.js';
 import { createSessionOptions } from './config/session.config.js';
+import accountExportRoutes from './routes/account-export.routes.js';
 import { auditContextMiddleware } from './middleware/audit-context.middleware.js';
 import { errorMiddleware } from './middleware/error.middleware.js';
 import { notFoundMiddleware } from './middleware/not-found.middleware.js';
@@ -48,6 +49,7 @@ app.use(session(createSessionOptions()));
 app.use(session(createSessionOptions()));
 
 app.use('/api/auth', authRoutes);
+app.use('/api/account', accountExportRoutes);
 app.use('/api', documentRoutes);
 app.use('/api', messageRoutes);
 app.use('/api', reviewRoutes);

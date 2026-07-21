@@ -7,7 +7,7 @@
 | Sprint | Sprint 3 - Documents, Communication, and Administration |
 | Goal | Deliver secure collaboration between clients and lawyers |
 | Functional status | In progress |
-| Current increment | Verified consultation reviews and ratings |
+| Current increment | Secure account and appointment export |
 | Security status | Design review complete for this increment; dynamic audit remains |
 | Audit type | Continuous white-box review |
 
@@ -27,6 +27,13 @@ The current increment adds verified consultation reviews. Only the client who
 owns a past approved or completed appointment can submit one immutable review.
 Public responses identify the author only as a verified client and do not
 expose the client or appointment identifiers.
+
+The final functional increment adds an authenticated JSON data export. Clients
+receive only their own account and appointments, while lawyers receive their
+own account, professional profile, and assigned appointments. The endpoint has
+no caller-controlled ownership identifier and excludes document contents,
+messages, authentication secrets, sessions, cryptographic metadata, and audit
+records.
 
 This report is intentionally marked in progress. Security hardening and dynamic
 security evidence are not yet complete.
@@ -107,6 +114,15 @@ security evidence are not yet complete.
 - React text-node rendering for review comments with no HTML interpretation
   sink.
 - Review creation is recorded without storing comment text in the audit log.
+- Authenticated self-service JSON export for client and lawyer accounts.
+- Server-derived account and appointment ownership with no user-ID parameter.
+- Explicit safe mapping for account, lawyer-profile, and appointment fields.
+- Fixed generic attachment filename and JSON content type.
+- Private, non-cacheable export responses.
+- Appointment-count and serialized-size bounds for immediate exports.
+- Export audit events that contain no exported profile or appointment content.
+- Account-page download control with blob-safe error handling.
+- Temporary browser object URLs revoked immediately after download initiation.
 
 ## 3. API Surface
 
@@ -120,6 +136,7 @@ security evidence are not yet complete.
 | `GET` | `/api/appointments/:appointmentId/review` | Read review status or the submitted review | Owning client |
 | `POST` | `/api/appointments/:appointmentId/review` | Submit one consultation review | Owning client; past approved/completed appointment |
 | `GET` | `/api/lawyer-profiles/:profileId/reviews` | List verified reviews and rating summary | Public |
+| `GET` | `/api/account/export` | Download safe account/profile/appointment JSON | Authenticated client or lawyer |
 
 The upload request uses `multipart/form-data` with exactly one file in the
 `document` field and no additional form fields.
@@ -183,6 +200,15 @@ The upload request uses `multipart/form-data` with exactly one file in the
 | Escaped review rendering | React renders comment values as text nodes | Reduces stored-XSS risk in the intended frontend |
 | Immutable review history | No update or delete route is exposed and schema fields are immutable | Preserves evidential consistency and limits post-publication tampering |
 | Review audit minimization | Creation event contains review ID but no rating or comment | Provides accountability without copying user content into security logs |
+| Session-derived export scope | Account ID and role come only from the authenticated session | Removes an IDOR selector and prevents exporting another account |
+| Role-scoped appointment query | Client exports query `client`; lawyer exports query `lawyer` | Restricts records to consultations in which the requester participated |
+| Explicit export mapper | Only allowlisted account, profile, participant, schedule, status, and consultation fields are serialized | Prevents password, session, cryptographic, and internal metadata disclosure |
+| No related-content expansion | Documents, messages, reviews, notifications, and audit records are not queried | Limits the sensitivity and blast radius of a downloaded file |
+| Strict empty request | Query parameters and request-body fields are rejected | Prevents unsupported filtering and future mass-assignment ambiguity |
+| Bounded generation | Appointment count is capped at 5,000 and output at 10 MB | Reduces memory-exhaustion risk from synchronous export generation |
+| Attachment response | Fixed generic filename and JSON media type are server controlled | Reduces response-header injection and accidental browser rendering |
+| Export no-store | `Cache-Control: private, no-store` is set | Reduces persistence in shared browser and intermediary caches |
+| Audited export | Successful generation records account export against the requester | Creates accountability without logging exported content |
 
 ## 5. Files Added or Modified in This Increment
 
@@ -273,6 +299,18 @@ The upload request uses `multipart/form-data` with exactly one file in the
 | `client/src/features/reviews/components/LawyerReviews.jsx` | Public rating summary, review list, and pagination |
 | `client/src/features/appointments/components/DashboardAppointmentItem.jsx` | Shows review controls after an eligible client consultation |
 | `client/src/features/lawyers/pages/PublicLawyerProfilePage.jsx` | Displays verified public reviews on a lawyer profile |
+| `server/src/constants/account-export.js` | Central appointment-count, byte-size, and format-version limits |
+| `server/src/utils/safe-account-export.js` | Explicitly maps safe account, profile, and appointment export fields |
+| `server/src/services/account-export.service.js` | Applies role ownership, bounds, sorting, and safe export composition |
+| `server/src/validators/account-export.validator.js` | Rejects unsupported export query parameters and request bodies |
+| `server/src/controllers/account-export.controller.js` | Serializes, size-checks, audits, and sends the protected attachment |
+| `server/src/routes/account-export.routes.js` | Exposes the authenticated client/lawyer export endpoint |
+| `server/src/constants/audit.js` | Adds the allowlisted account export audit action |
+| `server/src/app.js` | Registers account export routes |
+| `client/src/features/export/api/accountExport.api.js` | Requests the credentialed export as a browser blob |
+| `client/src/features/export/utils/accountExport.js` | Saves the generic JSON file and safely reads blob error responses |
+| `client/src/features/export/components/AccountDataExport.jsx` | Provides accessible download, loading, success, and failure states |
+| `client/src/features/auth/pages/AccountPage.jsx` | Adds export access to client and lawyer account pages |
 
 ## 6. Known Gaps and Audit Targets
 
@@ -311,6 +349,10 @@ The upload request uses `multipart/form-data` with exactly one file in the
 | Review lifecycle | Reviews cannot be corrected or withdrawn | Define a privacy-safe correction, withdrawal, and legal-retention policy |
 | Lawyer response | Lawyers cannot respond to reviews | Add only if required, with strict ownership and content controls |
 | Rating discovery | Lawyer directory does not sort or filter by rating | Add only if required and guard against ranking manipulation |
+| Export scale | Immediate generation intentionally rejects accounts above current bounds | Add an authenticated asynchronous export job if large production accounts must be supported |
+| Local file handling | The server cannot control the downloaded file after browser delivery | Document shared-device handling and user responsibility for local storage |
+| Export retention | Generated data is not stored by LexSecure, but browser/download retention is user controlled | Define user guidance and organizational handling policy |
+| Data portability scope | Documents and message contents are deliberately excluded | Confirm the coursework definition of profile and appointment export does not require a full data-subject-access package |
 
 The existing cross-sprint findings in `docs/SECURITY_BUG_REPORT.md`, including
 missing abuse controls, CSRF coverage, and duplicate session middleware, remain
@@ -396,6 +438,25 @@ open. They have not been silently fixed as part of this feature increment.
 47. Confirm review-status and submission responses use `private, no-store`.
 48. Confirm the review audit event contains the review ID but no rating or
     comment text.
+49. Export as a client and verify every appointment has that account as its
+    client in controlled database records.
+50. Export as a lawyer and verify every appointment is assigned to that lawyer
+    and only the lawyer's own professional profile appears.
+51. Attempt export anonymously and as an administrator, and submit unsupported
+    query parameters and request-body fields.
+52. Confirm password hashes, MFA secrets, session identifiers, lockout fields,
+    document/message ciphertext metadata, notifications, and audit records are
+    absent.
+53. Confirm counterpart email addresses and internal database ownership fields
+    are absent while counterpart display names remain available.
+54. Verify attachment disposition, generic filename, JSON content type,
+    content length, and `private, no-store` headers.
+55. Exercise controlled appointment-count and serialized-size boundaries and
+    confirm oversized exports fail before attachment headers are sent.
+56. Confirm a successful export produces one `account.data_exported` event
+    containing the requester ID but no exported content.
+57. Inspect browser storage and confirm the application does not retain the
+    downloaded blob URL or export data in local/session storage.
 
 Only synthetic legal documents should be used during testing.
 
@@ -435,27 +496,34 @@ Only synthetic legal documents should be used during testing.
 - Controlled review records matched to the displayed average rating.
 - Review response headers showing `private, no-store`.
 - Review creation event showing no copied review content.
+- Client and lawyer exports matched against controlled ownership records.
+- Anonymous/admin denial and unsupported-input responses for the export route.
+- Export file inspection showing allowlisted fields and excluded secrets.
+- Download response showing attachment, content type, length, and `no-store`.
+- Account export audit event showing no profile or appointment payload.
 
 ## 9. Sprint 3 Work Remaining
 
-1. Confirm whether profile and appointment export is required for the assessed
-   Sprint 3 scope.
-2. Perform the Sprint 3 security-hardening pass.
-3. Execute the dynamic audit matrix and attach evidence.
-4. Define or formally accept the review moderation and retention limitations.
-5. Convert this report from in-progress to retrospective complete.
+1. Perform the Sprint 3 security-hardening pass.
+2. Execute the dynamic audit matrix and attach evidence.
+3. Define or formally accept the review moderation, export scope, and retention
+   limitations.
+4. Convert this report from in-progress to retrospective complete.
 
 ## 10. Current Assessment
 
-The encrypted document, appointment-messaging, audit-monitoring, and verified
-review workflows are functionally implemented but are not yet security closed.
+The encrypted document, appointment-messaging, audit-monitoring, verified
+review, and role-scoped export workflows are functionally implemented but are
+not yet security closed.
 Their static
 design provides bounded parsing, layered file-type checks, participant-scoped
 authorization, non-public encrypted storage, context-bound message encryption,
 integrity verification, safe response mapping, escaped-text rendering, and
 tamper-evident application audit events. Reviews add server-derived ownership,
 consultation-state verification, database-backed duplicate prevention, and a
-privacy-minimized public response.
+privacy-minimized public response. Exports add session-derived scope, explicit
+field allowlisting, bounded generation, protected attachment delivery, and
+audited access.
 
 The main remaining risks are malicious document content, aggregate storage
 exhaustion, message-volume abuse, missing CSRF and rate-limit controls, key

@@ -28,6 +28,7 @@ export const AUDIT_ACTIONS = Object.freeze({
   DOCUMENT_DOWNLOADED: 'document.downloaded',
   MESSAGE_SENT: 'message.sent',
   REVIEW_CREATED: 'review.created',
+  ACCOUNT_DATA_EXPORTED: 'account.data_exported',
   AUDIT_LOGS_VIEWED: 'audit.logs_viewed',
 });
 

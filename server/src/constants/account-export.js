@@ -1,0 +1,6 @@
+export const ACCOUNT_EXPORT_LIMITS = Object.freeze({
+  MAXIMUM_APPOINTMENTS: 5_000,
+  MAXIMUM_BYTES: 10 * 1024 * 1024,
+});
+
+export const ACCOUNT_EXPORT_VERSION = 1;

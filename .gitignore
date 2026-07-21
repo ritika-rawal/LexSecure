@@ -16,4 +16,4 @@ npm-debug.log*
 
 # Encrypted document payloads are runtime data, not source artifacts.
 server/storage/documents/*
-!server/storage/documents/.gitkeep
+!server/storage/documents/.gitkeepf3r
