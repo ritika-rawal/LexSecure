@@ -12,7 +12,7 @@ import {
   assertEmailDeliveryConfigured,
   sendPasswordResetEmail,
 } from './email.service.js';
-import { hashPassword } from '../utils/password.js';
+import { buildPasswordReplacement } from './password-policy.service.js';
 import {
   generatePasswordResetToken,
   hashPasswordResetToken,
@@ -99,21 +99,35 @@ export const requestPasswordReset = async ({ req, email }) => {
 };
 
 export const consumePasswordResetToken = async ({ token, password }) => {
-  const passwordHash = await hashPassword(password);
   const tokenHash = hashPasswordResetToken(token);
   const passwordChangedAt = new Date();
+  const existingUser = await User.findOne({
+    isActive: true,
+    passwordResetTokenHash: tokenHash,
+    passwordResetExpiresAt: { $gt: passwordChangedAt },
+  }).select('+passwordHash +passwordHistoryHashes');
+
+  if (!existingUser) {
+    throw createInvalidResetTokenError();
+  }
+
+  const replacement = await buildPasswordReplacement({
+    candidatePassword: password,
+    currentHash: existingUser.passwordHash,
+    historyHashes: existingUser.passwordHistoryHashes,
+    changedAt: passwordChangedAt,
+  });
+
   const user = await User.findOneAndUpdate(
     {
+      _id: existingUser._id,
       isActive: true,
       passwordResetTokenHash: tokenHash,
       passwordResetExpiresAt: { $gt: passwordChangedAt },
+      passwordHash: existingUser.passwordHash,
     },
     {
-      $set: {
-        passwordHash,
-        passwordChangedAt,
-        failedLoginAttempts: 0,
-      },
+      $set: { ...replacement, failedLoginAttempts: 0 },
       $unset: {
         lockedUntil: '',
         passwordResetTokenHash: '',

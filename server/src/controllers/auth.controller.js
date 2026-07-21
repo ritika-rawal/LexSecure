@@ -27,6 +27,11 @@ import {
   CAPTCHA_ERROR_CODES,
   LOGIN_SECURITY_LIMITS,
 } from '../constants/authentication-security.js';
+import {
+  getPasswordExpiresAt,
+  isPasswordExpired,
+  PASSWORD_POLICY_ERROR_CODES,
+} from '../services/password-policy.service.js';
 
 const createInvalidCredentialsError = () => {
   const error = new Error('Invalid email or password.');
@@ -82,6 +87,7 @@ export const registerUser = async (req, res) => {
   }
 
   const passwordHash = await hashPassword(password);
+  const passwordChangedAt = new Date();
 
   let user;
 
@@ -90,6 +96,8 @@ export const registerUser = async (req, res) => {
       fullName,
       email: normalizedEmail,
       passwordHash,
+      passwordChangedAt,
+      passwordExpiresAt: getPasswordExpiresAt(passwordChangedAt),
       role,
     });
   } catch (error) {
@@ -127,7 +135,7 @@ export const loginUser = async (req, res) => {
   await requireValidCaptchaWhenChallenged(req);
 
   const user = await User.findOne({ email: normalizedEmail }).select(
-    '+passwordHash +failedLoginAttempts +lockedUntil +authVersion',
+    '+passwordHash +failedLoginAttempts +lockedUntil +authVersion +passwordChangedAt +passwordExpiresAt',
   );
   const passwordHash = user?.passwordHash || DUMMY_PASSWORD_HASH;
   const passwordMatches = await verifyPassword(password, passwordHash);
@@ -191,6 +199,13 @@ export const loginUser = async (req, res) => {
     }
 
     throw invalidCredentialsError;
+  }
+
+  if (isPasswordExpired(user)) {
+    const error = new Error('Your password has expired. Reset it before signing in.');
+    error.statusCode = 403;
+    error.publicCode = PASSWORD_POLICY_ERROR_CODES.EXPIRED;
+    throw error;
   }
 
   if (user.mfaEnabled) {

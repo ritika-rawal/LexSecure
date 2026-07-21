@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
+  CheckCircle2,
   Eye,
   EyeOff,
   LoaderCircle,
@@ -25,6 +26,7 @@ const CAPTCHA_ERROR_CODES = new Set(['CAPTCHA_REQUIRED', 'CAPTCHA_INVALID']);
 
 const LoginForm = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { setAuthenticatedUser } = useAuth();
   const [values, setValues] = useState(INITIAL_VALUES);
   const [errors, setErrors] = useState({});
@@ -37,11 +39,14 @@ const LoginForm = () => {
   const [captchaToken, setCaptchaToken] = useState('');
   const [captchaError, setCaptchaError] = useState('');
   const [captchaResetKey, setCaptchaResetKey] = useState(0);
+  const [passwordExpired, setPasswordExpired] = useState(false);
+  const passwordChanged = location.state?.passwordChanged === true;
 
   const updateField = ({ target: { name, value } }) => {
     setValues((current) => ({ ...current, [name]: value }));
     setErrors((current) => ({ ...current, [name]: undefined }));
     setSubmitError('');
+    setPasswordExpired(false);
   };
 
   const validateField = (fieldName) => {
@@ -83,6 +88,8 @@ const LoginForm = () => {
         setCaptchaToken('');
         setCaptchaResetKey((current) => current + 1);
       }
+
+      if (apiError.code === 'PASSWORD_EXPIRED') setPasswordExpired(true);
 
       setSubmitError(apiError.message);
       setErrors((current) => ({ ...current, ...apiError.fieldErrors }));
@@ -134,6 +141,18 @@ const LoginForm = () => {
             <AlertCircle aria-hidden="true" className="h-5 w-5 shrink-0" />
             <p>{submitError}</p>
           </div>
+          {passwordExpired ? (
+            <Link className="mt-3 inline-block font-semibold text-red-900 underline" to="/forgot-password">
+              Reset expired password
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
+
+      {passwordChanged && !submitError ? (
+        <div className="mb-6 flex gap-2 border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900" role="status">
+          <CheckCircle2 aria-hidden="true" className="h-5 w-5 shrink-0" />
+          <p>Password changed. Sign in again to continue.</p>
         </div>
       ) : null}
 

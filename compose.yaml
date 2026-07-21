@@ -36,6 +36,8 @@ services:
       TRUST_PROXY_HOPS: "1"
       CLIENT_ORIGIN: http://localhost:3000
       PASSWORD_RESET_URL: http://localhost:3000/reset-password
+      PASSWORD_MAX_AGE_DAYS: ${PASSWORD_MAX_AGE_DAYS:-90}
+      PASSWORD_HISTORY_SIZE: ${PASSWORD_HISTORY_SIZE:-5}
       MONGO_HOST: mongo
       MONGO_PORT: "27017"
       MONGO_DATABASE: ${MONGO_DATABASE:?MONGO_DATABASE is required}

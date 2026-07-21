@@ -12,6 +12,7 @@ const SESSION_CHANGING_PATHS = new Set([
   '/auth/mfa/verify-login',
   '/auth/mfa/disable',
   '/auth/password-reset/confirm',
+  '/auth/password',
 ]);
 
 export const httpClient = axios.create({

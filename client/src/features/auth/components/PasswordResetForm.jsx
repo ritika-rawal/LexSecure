@@ -10,6 +10,7 @@ import {
   validateNewPassword,
 } from '../validation/password-reset.validation.js';
 import FieldError from './FieldError.jsx';
+import PasswordStrengthFeedback from './PasswordStrengthFeedback.jsx';
 
 const INITIAL_VALUES = { password: '', confirmPassword: '' };
 
@@ -127,6 +128,9 @@ const PasswordResetForm = () => {
               </button>
             </div>
             <FieldError id={`${field.name}-error`} message={errors[field.name]} />
+            {field.name === 'password' ? (
+              <PasswordStrengthFeedback password={values.password} />
+            ) : null}
           </div>
         ))}
 

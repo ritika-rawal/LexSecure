@@ -16,6 +16,7 @@ import { registerUser } from '../api/registration.api.js';
 import { getAuthApiError } from '../utils/apiError.js';
 import { validateRegistration } from '../validation/registration.validation.js';
 import FieldError from './FieldError.jsx';
+import PasswordStrengthFeedback from './PasswordStrengthFeedback.jsx';
 
 const INITIAL_VALUES = {
   fullName: '',
@@ -195,6 +196,9 @@ const RegistrationForm = () => {
                 ) : null}
               </div>
               <FieldError id={`${name}-error`} message={errors[name]} />
+              {name === 'password' ? (
+                <PasswordStrengthFeedback password={values.password} />
+              ) : null}
             </div>
           ))}
         </div>

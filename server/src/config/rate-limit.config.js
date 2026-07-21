@@ -72,3 +72,9 @@ export const passwordResetConfirmRateLimiter = createRateLimiter({
   limit: RATE_LIMIT_MAXIMUMS.PASSWORD_RESET_CONFIRM,
   message: 'Too many password reset attempts. Try again later.',
 });
+
+export const passwordChangeRateLimiter = createRateLimiter({
+  windowMs: RATE_LIMIT_WINDOWS_MS.AUTHENTICATION,
+  limit: RATE_LIMIT_MAXIMUMS.PASSWORD_CHANGE,
+  message: 'Too many password change attempts. Try again later.',
+});

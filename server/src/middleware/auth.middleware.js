@@ -5,6 +5,10 @@ import { USER_ROLE_VALUES } from '../constants/user-roles.js';
 import { User } from '../models/User.model.js';
 import { buildSafeUserResponse } from '../utils/safe-user.js';
 import { destroySession } from '../utils/session.js';
+import {
+  isPasswordExpired,
+  PASSWORD_POLICY_ERROR_CODES,
+} from '../services/password-policy.service.js';
 
 const createAuthenticationError = () => {
   const error = new Error('Authentication required.');
@@ -26,7 +30,9 @@ export const requireAuthentication = async (req, res, next) => {
     throw createAuthenticationError();
   }
 
-  const user = await User.findById(sessionUserId).select('+authVersion');
+  const user = await User.findById(sessionUserId).select(
+    '+authVersion +passwordChangedAt +passwordExpiresAt',
+  );
 
   if (
     !user
@@ -37,6 +43,15 @@ export const requireAuthentication = async (req, res, next) => {
     await destroySession(req);
     res.clearCookie(SESSION_COOKIE_NAME, sessionCookieOptions);
     throw createAuthenticationError();
+  }
+
+  if (isPasswordExpired(user)) {
+    await destroySession(req);
+    res.clearCookie(SESSION_COOKIE_NAME, sessionCookieOptions);
+    const error = new Error('Your password has expired. Reset it before signing in.');
+    error.statusCode = 401;
+    error.publicCode = PASSWORD_POLICY_ERROR_CODES.EXPIRED;
+    throw error;
   }
 
   req.user = buildSafeUserResponse(user);

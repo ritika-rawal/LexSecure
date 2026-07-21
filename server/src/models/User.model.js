@@ -90,6 +90,21 @@ const userSchema = new Schema(
       type: Date,
       select: false,
     },
+    passwordExpiresAt: {
+      type: Date,
+      select: false,
+    },
+    passwordHistoryHashes: {
+      type: [String],
+      default: undefined,
+      select: false,
+      validate: {
+        validator(values) {
+          return !values || values.length <= 10;
+        },
+        message: 'Password history exceeds its maximum size.',
+      },
+    },
     authVersion: {
       type: Number,
       default: 0,
@@ -128,6 +143,8 @@ userSchema.set('toJSON', {
     delete returnedObject.failedLoginAttempts;
     delete returnedObject.lockedUntil;
     delete returnedObject.passwordChangedAt;
+    delete returnedObject.passwordExpiresAt;
+    delete returnedObject.passwordHistoryHashes;
     delete returnedObject.authVersion;
     delete returnedObject.passwordResetTokenHash;
     delete returnedObject.passwordResetExpiresAt;

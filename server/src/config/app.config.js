@@ -11,6 +11,8 @@ dotenv.config({ path: envFilePath });
 const DEFAULT_PORT = 5000;
 const DEFAULT_CLIENT_ORIGIN = 'http://localhost:3000';
 const DEFAULT_PASSWORD_RESET_URL = `${DEFAULT_CLIENT_ORIGIN}/reset-password`;
+const DEFAULT_PASSWORD_MAX_AGE_DAYS = 90;
+const DEFAULT_PASSWORD_HISTORY_SIZE = 5;
 const DEVELOPMENT_TURNSTILE_SECRET_KEY = '1x0000000000000000000000000000000AA';
 
 const parsePort = (value) => {
@@ -30,6 +32,18 @@ const parseAllowedOrigins = (value) => {
     .filter(Boolean);
 
   return origins.length > 0 ? origins : [DEFAULT_CLIENT_ORIGIN];
+};
+
+const parseIntegerInRange = (value, defaultValue, variableName, minimum, maximum) => {
+  if (value === undefined || value === '') return defaultValue;
+
+  const parsedValue = Number.parseInt(value, 10);
+
+  if (!Number.isInteger(parsedValue) || parsedValue < minimum || parsedValue > maximum) {
+    throw new Error(`${variableName} must be an integer between ${minimum} and ${maximum}.`);
+  }
+
+  return parsedValue;
 };
 
 const parseHostnames = (value) => {
@@ -209,6 +223,22 @@ export const appConfig = Object.freeze({
   auditLogHmacKey: parsedAuditLogHmacKey,
   mfaEncryptionKey: resolvedMfaEncryptionKey,
   passwordResetUrl,
+  passwordPolicy: Object.freeze({
+    maxAgeDays: parseIntegerInRange(
+      process.env.PASSWORD_MAX_AGE_DAYS,
+      DEFAULT_PASSWORD_MAX_AGE_DAYS,
+      'PASSWORD_MAX_AGE_DAYS',
+      1,
+      365,
+    ),
+    historySize: parseIntegerInRange(
+      process.env.PASSWORD_HISTORY_SIZE,
+      DEFAULT_PASSWORD_HISTORY_SIZE,
+      'PASSWORD_HISTORY_SIZE',
+      1,
+      10,
+    ),
+  }),
   smtp,
   turnstile: Object.freeze({
     secretKey: turnstileSecretKey,
