@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 
 const DEFAULT_API_BASE_URL = 'http://localhost:5000/api';
 const DEVELOPMENT_ORIGIN = 'http://localhost:3000';
+const TURNSTILE_ORIGIN = 'https://challenges.cloudflare.com';
 
 const parseHttpOrigin = (value) => {
   const url = new URL(value);
@@ -21,7 +22,7 @@ const createContentSecurityPolicy = ({ apiOrigin, allowDevelopmentTransforms }) 
     connectSources.push(DEVELOPMENT_ORIGIN.replace('http:', 'ws:'));
   }
 
-  const scriptSources = ["'self'"];
+  const scriptSources = ["'self'", TURNSTILE_ORIGIN];
   const styleSources = ["'self'"];
 
   // Vite injects its React refresh preamble and transformed CSS during development.
@@ -37,6 +38,7 @@ const createContentSecurityPolicy = ({ apiOrigin, allowDevelopmentTransforms }) 
     "font-src 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
+    `frame-src ${TURNSTILE_ORIGIN}`,
     "img-src 'self' data:",
     "object-src 'none'",
     `script-src ${scriptSources.join(' ')}`,

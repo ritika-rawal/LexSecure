@@ -13,11 +13,12 @@ const formatRetryAfter = (value) => {
 
 export const getAuthApiError = (error, fallbackMessage) => {
   if (!axios.isAxiosError(error)) {
-    return { message: 'Something went wrong. Please try again.', fieldErrors: {} };
+    return { code: '', message: 'Something went wrong. Please try again.', fieldErrors: {} };
   }
 
   if (!error.response) {
     return {
+      code: '',
       message: 'Unable to reach LexSecure. Check that the backend is running.',
       fieldErrors: {},
     };
@@ -42,6 +43,7 @@ export const getAuthApiError = (error, fallbackMessage) => {
       : '';
 
   return {
+    code: error.response.data?.code || '',
     message: retryAfter
       ? `${responseMessage} Retry after ${retryAfter}.`
       : responseMessage,

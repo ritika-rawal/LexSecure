@@ -10,8 +10,11 @@ import { recordAuditEventWithoutBlocking } from '../services/audit.service.js';
 import { establishAuthenticatedSession } from '../services/authentication-session.service.js';
 import {
   isLoginLocked,
+  isLoginCaptchaRequired,
   recordFailedLoginAttempt,
+  recordSessionLoginFailure,
 } from '../services/login-security.service.js';
+import { verifyCaptchaToken } from '../services/captcha.service.js';
 import {
   DUMMY_PASSWORD_HASH,
   hashPassword,
@@ -20,11 +23,50 @@ import {
 import { buildSafeUserResponse } from '../utils/safe-user.js';
 import { destroySession, regenerateSession, saveSession } from '../utils/session.js';
 import { MFA_LIMITS } from '../constants/mfa.js';
+import {
+  CAPTCHA_ERROR_CODES,
+  LOGIN_SECURITY_LIMITS,
+} from '../constants/authentication-security.js';
 
 const createInvalidCredentialsError = () => {
   const error = new Error('Invalid email or password.');
   error.statusCode = 401;
   return error;
+};
+
+const createCaptchaError = ({ code, message }) => {
+  const error = new Error(message);
+  error.statusCode = 403;
+  error.publicCode = code;
+  return error;
+};
+
+const requireValidCaptchaWhenChallenged = async (req) => {
+  const sourceFailureCount = req.rateLimit?.used;
+  const sourceRequiresCaptcha =
+    Number.isInteger(sourceFailureCount)
+    && sourceFailureCount > LOGIN_SECURITY_LIMITS.CAPTCHA_AFTER_SESSION_FAILURES;
+
+  if (!sourceRequiresCaptcha && !isLoginCaptchaRequired(req.session)) return;
+
+  if (!req.body.captchaToken) {
+    throw createCaptchaError({
+      code: CAPTCHA_ERROR_CODES.REQUIRED,
+      message: 'Complete the security verification and try again.',
+    });
+  }
+
+  const isValid = await verifyCaptchaToken({
+    token: req.body.captchaToken,
+    remoteIp: req.ip,
+  });
+
+  if (!isValid) {
+    throw createCaptchaError({
+      code: CAPTCHA_ERROR_CODES.INVALID,
+      message: 'Security verification failed. Complete a new challenge.',
+    });
+  }
 };
 
 export const registerUser = async (req, res) => {
@@ -82,6 +124,8 @@ export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   const normalizedEmail = email.toLowerCase();
 
+  await requireValidCaptchaWhenChallenged(req);
+
   const user = await User.findOne({ email: normalizedEmail }).select(
     '+passwordHash +failedLoginAttempts +lockedUntil +authVersion',
   );
@@ -96,6 +140,8 @@ export const loginUser = async (req, res) => {
   }
 
   if (!user || !passwordMatches || accountIsLocked) {
+    const captchaIsNowRequired = await recordSessionLoginFailure(req);
+
     await recordAuditEventWithoutBlocking({
       req,
       actorRole: AUDIT_ACTOR_ROLES.ANONYMOUS,
@@ -117,10 +163,18 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    throw createInvalidCredentialsError();
+    const invalidCredentialsError = createInvalidCredentialsError();
+
+    if (captchaIsNowRequired) {
+      invalidCredentialsError.publicCode = CAPTCHA_ERROR_CODES.REQUIRED;
+    }
+
+    throw invalidCredentialsError;
   }
 
   if (!user.isActive) {
+    const captchaIsNowRequired = await recordSessionLoginFailure(req);
+
     await recordAuditEventWithoutBlocking({
       req,
       actorRole: AUDIT_ACTOR_ROLES.ANONYMOUS,
@@ -130,7 +184,13 @@ export const loginUser = async (req, res) => {
       targetId: user._id,
       subject: normalizedEmail,
     });
-    throw createInvalidCredentialsError();
+    const invalidCredentialsError = createInvalidCredentialsError();
+
+    if (captchaIsNowRequired) {
+      invalidCredentialsError.publicCode = CAPTCHA_ERROR_CODES.REQUIRED;
+    }
+
+    throw invalidCredentialsError;
   }
 
   if (user.mfaEnabled) {

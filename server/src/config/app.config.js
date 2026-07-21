@@ -11,6 +11,7 @@ dotenv.config({ path: envFilePath });
 const DEFAULT_PORT = 5000;
 const DEFAULT_CLIENT_ORIGIN = 'http://localhost:3000';
 const DEFAULT_PASSWORD_RESET_URL = `${DEFAULT_CLIENT_ORIGIN}/reset-password`;
+const DEVELOPMENT_TURNSTILE_SECRET_KEY = '1x0000000000000000000000000000000AA';
 
 const parsePort = (value) => {
   const parsedPort = Number.parseInt(value, 10);
@@ -29,6 +30,22 @@ const parseAllowedOrigins = (value) => {
     .filter(Boolean);
 
   return origins.length > 0 ? origins : [DEFAULT_CLIENT_ORIGIN];
+};
+
+const parseHostnames = (value) => {
+  const hostnames = value
+    .split(',')
+    .map((hostname) => hostname.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (
+    hostnames.length === 0
+    || hostnames.some((hostname) => !/^[a-z0-9.-]+$/.test(hostname))
+  ) {
+    throw new Error('TURNSTILE_ALLOWED_HOSTNAMES must contain valid hostnames.');
+  }
+
+  return Object.freeze(hostnames);
 };
 
 const parseTrustProxyHops = (value) => {
@@ -104,6 +121,8 @@ const documentEncryptionKey = process.env.DOCUMENT_ENCRYPTION_KEY;
 const messageEncryptionKey = process.env.MESSAGE_ENCRYPTION_KEY;
 const auditLogHmacKey = process.env.AUDIT_LOG_HMAC_KEY;
 const mfaEncryptionKey = process.env.MFA_ENCRYPTION_KEY;
+const turnstileSecretKey = process.env.TURNSTILE_SECRET_KEY
+  || (nodeEnv === 'production' ? null : DEVELOPMENT_TURNSTILE_SECRET_KEY);
 const passwordResetUrl = parseHttpUrl(
   process.env.PASSWORD_RESET_URL || DEFAULT_PASSWORD_RESET_URL,
   'PASSWORD_RESET_URL',
@@ -141,6 +160,16 @@ if (nodeEnv === 'production' && !smtp) {
 
 if (nodeEnv === 'production' && !passwordResetUrl.startsWith('https://')) {
   throw new Error('PASSWORD_RESET_URL must use HTTPS in production.');
+}
+
+if (
+  !turnstileSecretKey
+  || (
+    nodeEnv === 'production'
+    && turnstileSecretKey === DEVELOPMENT_TURNSTILE_SECRET_KEY
+  )
+) {
+  throw new Error('A non-development TURNSTILE_SECRET_KEY is required in production.');
 }
 
 const resolvedMfaEncryptionKey = mfaEncryptionKey
@@ -181,4 +210,13 @@ export const appConfig = Object.freeze({
   mfaEncryptionKey: resolvedMfaEncryptionKey,
   passwordResetUrl,
   smtp,
+  turnstile: Object.freeze({
+    secretKey: turnstileSecretKey,
+    expectedAction: 'login',
+    allowedHostnames: parseHostnames(
+      process.env.TURNSTILE_ALLOWED_HOSTNAMES || 'localhost,127.0.0.1',
+    ),
+    verificationTimeoutMs: 5_000,
+    allowsDevelopmentTestResponse: nodeEnv !== 'production',
+  }),
 });

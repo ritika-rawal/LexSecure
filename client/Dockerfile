@@ -11,7 +11,9 @@ RUN npm ci --workspace=@lexsecure/frontend
 COPY client client
 
 ARG VITE_API_BASE_URL=http://localhost:3000/api
+ARG VITE_TURNSTILE_SITE_KEY=1x00000000000000000000AA
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+ENV VITE_TURNSTILE_SITE_KEY=${VITE_TURNSTILE_SITE_KEY}
 
 RUN npm run build --workspace=@lexsecure/frontend
 

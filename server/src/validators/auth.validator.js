@@ -1,6 +1,7 @@
 import { body } from 'express-validator';
 
 import { SELF_REGISTRATION_ROLE_VALUES } from '../constants/user-roles.js';
+import { CAPTCHA_LIMITS } from '../constants/authentication-security.js';
 import {
   PASSWORD_MAXIMUM_LENGTH,
   strongPasswordValidator,
@@ -47,4 +48,10 @@ export const loginValidator = [
     .withMessage('Password must be text.')
     .isLength({ min: 1, max: PASSWORD_MAXIMUM_LENGTH })
     .withMessage(`Password must not exceed ${PASSWORD_MAXIMUM_LENGTH} characters.`),
+  body('captchaToken')
+    .optional({ values: 'falsy' })
+    .isString()
+    .withMessage('Security verification token must be text.')
+    .isLength({ min: 1, max: CAPTCHA_LIMITS.TOKEN_MAXIMUM_LENGTH })
+    .withMessage('Security verification token is invalid.'),
 ];

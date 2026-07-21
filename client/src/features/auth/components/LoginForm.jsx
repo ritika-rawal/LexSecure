@@ -18,8 +18,10 @@ import { getRoleHomePath } from '../utils/roleHomePath.js';
 import { validateLogin } from '../validation/login.validation.js';
 import { normalizeMfaCode, validateMfaCode } from '../validation/mfa.validation.js';
 import FieldError from './FieldError.jsx';
+import TurnstileWidget from './TurnstileWidget.jsx';
 
 const INITIAL_VALUES = { email: '', password: '' };
+const CAPTCHA_ERROR_CODES = new Set(['CAPTCHA_REQUIRED', 'CAPTCHA_INVALID']);
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -31,6 +33,10 @@ const LoginForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requiresMfa, setRequiresMfa] = useState(false);
   const [mfaCode, setMfaCode] = useState('');
+  const [captchaRequired, setCaptchaRequired] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaError, setCaptchaError] = useState('');
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
 
   const updateField = ({ target: { name, value } }) => {
     setValues((current) => ({ ...current, [name]: value }));
@@ -53,20 +59,31 @@ const LoginForm = () => {
 
     setIsSubmitting(true);
     try {
-      const response = await loginUser(values);
+      const response = await loginUser({ ...values, captchaToken });
 
       if (response.data.requiresMfa) {
         setRequiresMfa(true);
         setValues(INITIAL_VALUES);
         setMfaCode('');
+        setCaptchaRequired(false);
+        setCaptchaToken('');
         return;
       }
 
       setAuthenticatedUser(response.data.user);
       setValues(INITIAL_VALUES);
+      setCaptchaRequired(false);
+      setCaptchaToken('');
       navigate(getRoleHomePath(response.data.user.role), { replace: true });
     } catch (error) {
       const apiError = getAuthApiError(error, 'Login could not be completed.');
+
+      if (CAPTCHA_ERROR_CODES.has(apiError.code)) {
+        setCaptchaRequired(true);
+        setCaptchaToken('');
+        setCaptchaResetKey((current) => current + 1);
+      }
+
       setSubmitError(apiError.message);
       setErrors((current) => ({ ...current, ...apiError.fieldErrors }));
       setValues((current) => ({ ...current, password: '' }));
@@ -226,7 +243,22 @@ const LoginForm = () => {
           <FieldError id="loginPassword-error" message={errors.password} />
         </div>
 
-        <button className="flex h-12 w-full items-center justify-center gap-2 bg-forest px-5 font-semibold text-white hover:bg-forest-dark disabled:opacity-60" disabled={isSubmitting} type="submit">
+        {captchaRequired ? (
+          <div>
+            <p className="mb-2 text-sm font-semibold text-ink">Security verification</p>
+            <TurnstileWidget
+              onError={setCaptchaError}
+              onToken={(token) => {
+                setCaptchaToken(token);
+                if (token) setCaptchaError('');
+              }}
+              resetKey={captchaResetKey}
+            />
+            <FieldError id="loginCaptcha-error" message={captchaError} />
+          </div>
+        ) : null}
+
+        <button className="flex h-12 w-full items-center justify-center gap-2 bg-forest px-5 font-semibold text-white hover:bg-forest-dark disabled:opacity-60" disabled={isSubmitting || (captchaRequired && !captchaToken)} type="submit">
           {isSubmitting ? <LoaderCircle aria-hidden="true" className="h-5 w-5 animate-spin" /> : null}
           {isSubmitting ? 'Signing in' : 'Sign in'}
         </button>
