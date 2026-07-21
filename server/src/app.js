@@ -43,11 +43,11 @@ app.use('/api', apiRateLimiter);
  */
 app.use(express.json({ limit: appConfig.jsonBodyLimit }));
 app.use(express.urlencoded({ extended: false, limit: appConfig.jsonBodyLimit }));
-app.use(session(createSessionOptions()));
 
 /*
- * Sessions are stored in MongoDB so authentication state is not kept in memory.
- * Cookies are HTTP-only, which prevents browser JavaScript from reading them.
+ * Initialize exactly one session boundary before CSRF and application routes.
+ * Sessions use MongoDB rather than process memory, while HTTP-only cookies keep
+ * the session identifier unavailable to browser JavaScript.
  */
 app.use(session(createSessionOptions()));
 
