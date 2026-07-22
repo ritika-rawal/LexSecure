@@ -9,11 +9,10 @@ import {
   Inbox,
   LoaderCircle,
   RefreshCw,
-  Scale,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import AuthenticatedHeaderActions from '../../notifications/components/AuthenticatedHeaderActions.jsx';
+import LawyerWorkspaceHeader from '../../auth/components/LawyerWorkspaceHeader.jsx';
 import { getAuthApiError } from '../../auth/utils/apiError.js';
 import {
   getPendingLawyerAppointments,
@@ -111,23 +110,10 @@ const LawyerAppointmentInboxPage = () => {
   };
 
   return (
-    <main className="min-h-screen bg-[#f4f6f5] text-ink">
-      <header className="border-b border-line bg-white">
-        <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center bg-ink text-white">
-              <Scale aria-hidden="true" className="h-5 w-5" />
-            </span>
-            <div>
-              <span className="block text-lg font-bold leading-5">LexSecure</span>
-              <span className="text-xs text-gray-500">Lawyer workspace</span>
-            </div>
-          </div>
-          <AuthenticatedHeaderActions />
-        </div>
-      </header>
+    <main className="min-h-screen bg-[#e8eeeb] text-ink">
+      <LawyerWorkspaceHeader activePath="/lawyer/appointments" />
 
-      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
+      <div className="client-page-enter mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
         <Link
           className="mb-7 inline-flex items-center gap-2 text-sm font-semibold text-forest hover:underline"
           to="/lawyer/account"
@@ -139,13 +125,13 @@ const LawyerAppointmentInboxPage = () => {
         <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <p className="mb-2 text-sm font-semibold uppercase text-forest">Consultation inbox</p>
-            <h1 className="text-3xl font-bold sm:text-4xl">Appointment requests</h1>
+            <h1 className="font-display text-3xl font-semibold sm:text-4xl">Appointment requests</h1>
             <p className="mt-2 max-w-2xl text-gray-600">
               Review pending client requests and their confidential consultation context.
             </p>
           </div>
           <button
-            className="flex h-10 w-fit items-center gap-2 border border-gray-300 bg-white px-4 text-sm font-semibold hover:bg-gray-100 disabled:opacity-60"
+            className="flex h-10 w-fit items-center gap-2 rounded-lg border border-white/90 bg-white/70 px-4 text-sm font-semibold shadow-sm backdrop-blur-lg hover:bg-white disabled:opacity-60"
             disabled={isLoading}
             onClick={refreshInbox}
             type="button"
@@ -175,14 +161,14 @@ const LawyerAppointmentInboxPage = () => {
         ) : null}
 
         {isLoading ? (
-          <div className="flex min-h-64 items-center justify-center gap-2 border border-line bg-white text-sm font-semibold" aria-busy="true" aria-live="polite">
+          <div className="flex min-h-64 items-center justify-center gap-2 rounded-lg border border-white/90 bg-white/65 text-sm font-semibold shadow-lg shadow-ink/5 backdrop-blur-xl" aria-busy="true" aria-live="polite">
             <LoaderCircle aria-hidden="true" className="h-5 w-5 animate-spin text-forest" />
             Loading appointment requests
           </div>
         ) : null}
 
         {!isLoading && !loadError && appointments.length === 0 ? (
-          <section className="border border-line bg-white px-6 py-16 text-center">
+          <section className="rounded-lg border border-white/90 bg-white/65 px-6 py-16 text-center shadow-lg shadow-ink/5 backdrop-blur-xl">
             <Inbox aria-hidden="true" className="mx-auto mb-4 h-10 w-10 text-forest" />
             <h2 className="text-xl font-bold">Inbox is clear</h2>
             <p className="mt-2 text-gray-600">There are no pending appointment requests.</p>
@@ -226,7 +212,7 @@ const LawyerAppointmentInboxPage = () => {
               <nav className="flex items-center justify-end gap-2" aria-label="Appointment request pages">
                 <button
                   aria-label="Previous page"
-                  className="grid h-10 w-10 place-items-center border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-40"
+                  className="grid h-10 w-10 place-items-center rounded-lg border border-white/90 bg-white/70 shadow-sm hover:bg-white disabled:opacity-40"
                   disabled={page <= 1}
                   onClick={() => setPage((current) => Math.max(1, current - 1))}
                   title="Previous page"
@@ -236,7 +222,7 @@ const LawyerAppointmentInboxPage = () => {
                 </button>
                 <button
                   aria-label="Next page"
-                  className="grid h-10 w-10 place-items-center border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-40"
+                  className="grid h-10 w-10 place-items-center rounded-lg border border-white/90 bg-white/70 shadow-sm hover:bg-white disabled:opacity-40"
                   disabled={page >= pagination.totalPages}
                   onClick={() => setPage((current) => current + 1)}
                   title="Next page"

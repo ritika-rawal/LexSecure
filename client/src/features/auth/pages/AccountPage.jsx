@@ -1,10 +1,7 @@
 import {
   BadgeCheck,
-  BriefcaseBusiness,
   ChevronRight,
   Mail,
-  Inbox,
-  CalendarRange,
   ClipboardCheck,
   Scale,
   ScrollText,
@@ -20,6 +17,7 @@ import AuthenticatedHeaderActions from '../../notifications/components/Authentic
 import MfaSecurityPanel from '../components/MfaSecurityPanel.jsx';
 import PasswordSecurityPanel from '../components/PasswordSecurityPanel.jsx';
 import ClientDashboard from '../components/ClientDashboard.jsx';
+import LawyerDashboard from '../components/LawyerDashboard.jsx';
 import { USER_ROLES } from '../constants/userRoles.js';
 import { useAuth } from '../hooks/useAuth.js';
 
@@ -30,6 +28,10 @@ const AccountPage = () => {
 
   if (user.role === USER_ROLES.CLIENT) {
     return <ClientDashboard user={user} />;
+  }
+
+  if (user.role === USER_ROLES.LAWYER) {
+    return <LawyerDashboard user={user} />;
   }
 
   return (
@@ -49,55 +51,6 @@ const AccountPage = () => {
       <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">
         <p className="mb-2 text-sm font-semibold uppercase text-forest">{formatRole(user.role)} account</p>
         <h1 className="mb-10 text-3xl font-bold sm:text-4xl">Welcome, {user.fullName}</h1>
-        {user.role === USER_ROLES.LAWYER ? (
-          <div className="mb-8 grid gap-3 md:grid-cols-3">
-            <Link
-              className="flex items-center justify-between gap-4 border-l-4 border-forest bg-white px-5 py-5 hover:bg-emerald-50"
-              to="/lawyer/schedule"
-            >
-              <span className="flex items-center gap-3">
-                <CalendarRange aria-hidden="true" className="h-5 w-5 text-forest" />
-                <span>
-                  <span className="block font-bold">My schedule</span>
-                  <span className="mt-1 block text-sm text-gray-600">
-                    View consultation history and status
-                  </span>
-                </span>
-              </span>
-              <ChevronRight aria-hidden="true" className="h-5 w-5 text-gray-500" />
-            </Link>
-            <Link
-              className="flex items-center justify-between gap-4 border-l-4 border-forest bg-white px-5 py-5 hover:bg-emerald-50"
-              to="/lawyer/appointments"
-            >
-              <span className="flex items-center gap-3">
-                <Inbox aria-hidden="true" className="h-5 w-5 text-forest" />
-                <span>
-                  <span className="block font-bold">Appointment requests</span>
-                  <span className="mt-1 block text-sm text-gray-600">
-                    Review pending consultation requests
-                  </span>
-                </span>
-              </span>
-              <ChevronRight aria-hidden="true" className="h-5 w-5 text-gray-500" />
-            </Link>
-            <Link
-              className="flex items-center justify-between gap-4 border-l-4 border-forest bg-white px-5 py-5 hover:bg-emerald-50"
-              to="/lawyer/profile"
-            >
-              <span className="flex items-center gap-3">
-                <BriefcaseBusiness aria-hidden="true" className="h-5 w-5 text-forest" />
-                <span>
-                  <span className="block font-bold">Lawyer profile</span>
-                  <span className="mt-1 block text-sm text-gray-600">
-                    Manage professional details and availability
-                  </span>
-                </span>
-              </span>
-              <ChevronRight aria-hidden="true" className="h-5 w-5 text-gray-500" />
-            </Link>
-          </div>
-        ) : null}
         {user.role === USER_ROLES.ADMIN ? (
           <div className="mb-8 grid gap-3 md:grid-cols-3">
             <Link

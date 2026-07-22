@@ -27,7 +27,7 @@ const AppointmentRequestItem = ({
   const isExpired = isExpiredAppointment(appointment.startsAt);
 
   return (
-    <article className="border border-line bg-white" aria-labelledby={`appointment-${appointment.id}`}>
+    <article className="lawyer-request-card overflow-hidden rounded-lg border border-white/90 bg-white/65 shadow-lg shadow-ink/5 backdrop-blur-xl" aria-labelledby={`appointment-${appointment.id}`}>
       <div className="grid border-b border-line md:grid-cols-[210px_minmax(0,1fr)]">
         <div className="bg-ink px-5 py-5 text-white sm:px-6">
           <p className="text-xs font-semibold uppercase text-emerald-200">
@@ -56,7 +56,7 @@ const AppointmentRequestItem = ({
                 {appointment.client.fullName}
               </h2>
             </div>
-            <span className="w-fit border border-amber-300 bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-800">
+            <span className="w-fit rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-800">
               Pending decision
             </span>
           </div>

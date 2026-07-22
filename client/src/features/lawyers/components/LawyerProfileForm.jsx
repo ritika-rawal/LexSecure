@@ -134,7 +134,7 @@ const LawyerProfileForm = ({ initialProfile, onSaved }) => {
   };
 
   return (
-    <form className="space-y-8" noValidate onSubmit={handleSubmit}>
+    <form className="lawyer-profile-form space-y-6" noValidate onSubmit={handleSubmit}>
       {submitError ? (
         <div className="border border-red-300 bg-red-50 p-4 text-sm text-red-800" role="alert">
           <div className="flex gap-2">
