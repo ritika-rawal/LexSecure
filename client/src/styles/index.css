@@ -301,6 +301,14 @@
   animation: rise-in 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.booking-step-panel {
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.64);
+  box-shadow: 0 12px 30px rgba(22, 33, 29, 0.07);
+  backdrop-filter: blur(18px);
+}
+
 .dashboard-action-arrow {
   transition: transform 220ms ease;
 }

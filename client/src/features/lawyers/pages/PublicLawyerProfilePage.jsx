@@ -8,12 +8,12 @@ import {
   Clock3,
   MoveRight,
   LoaderCircle,
-  Scale,
+  ShieldCheck,
 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 
 import { getAuthApiError } from '../../auth/utils/apiError.js';
-import AuthenticatedHeaderActions from '../../notifications/components/AuthenticatedHeaderActions.jsx';
+import ClientWorkspaceHeader from '../../auth/components/ClientWorkspaceHeader.jsx';
 import LawyerReviews from '../../reviews/components/LawyerReviews.jsx';
 import { getPublicLawyerProfile } from '../api/publicLawyer.api.js';
 import {
@@ -59,20 +59,10 @@ const PublicLawyerProfilePage = () => {
   }, [profileId, reloadKey]);
 
   return (
-    <main className="min-h-screen bg-paper text-ink">
-      <header className="border-b border-line bg-white">
-        <div className="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center bg-ink text-white">
-              <Scale aria-hidden="true" className="h-5 w-5" />
-            </span>
-            <span className="text-lg font-bold">LexSecure</span>
-          </div>
-          <AuthenticatedHeaderActions />
-        </div>
-      </header>
+    <main className="min-h-screen bg-[#e8eeeb] text-ink">
+      <ClientWorkspaceHeader activePath="/lawyers" />
 
-      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
+      <div className="client-page-enter mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
         <Link
           className="mb-7 inline-flex items-center gap-2 text-sm font-semibold text-forest hover:underline"
           to="/lawyers"
@@ -82,7 +72,7 @@ const PublicLawyerProfilePage = () => {
         </Link>
 
         {isLoading ? (
-          <div className="flex min-h-64 items-center justify-center gap-2 border border-line bg-white text-sm font-semibold" aria-busy="true" aria-live="polite">
+          <div className="flex min-h-64 items-center justify-center gap-2 rounded-lg border border-white/90 bg-white/65 text-sm font-semibold shadow-lg shadow-ink/5 backdrop-blur-xl" aria-busy="true" aria-live="polite">
             <LoaderCircle aria-hidden="true" className="h-5 w-5 animate-spin text-forest" />
             Loading lawyer profile
           </div>
@@ -105,19 +95,22 @@ const PublicLawyerProfilePage = () => {
         ) : null}
 
         {!isLoading && !loadError && profile ? (
-          <article>
-            <div className="flex flex-col gap-5 border-b border-line bg-white px-6 py-7 sm:flex-row sm:items-center sm:px-8">
-              <span className="grid h-16 w-16 shrink-0 place-items-center bg-forest text-lg font-bold text-white">
+          <article className="overflow-hidden rounded-lg border border-white/90 bg-white/60 shadow-panel backdrop-blur-xl">
+            <div className="flex flex-col gap-5 border-b border-white/80 bg-white/38 px-6 py-7 sm:flex-row sm:items-center sm:px-8">
+              <span className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-forest text-lg font-bold text-white shadow-md">
                 {getLawyerInitials(profile.lawyer.fullName)}
               </span>
               <div>
-                <p className="mb-1 text-sm font-semibold uppercase text-forest">Approved lawyer</p>
-                <h1 className="text-3xl font-bold sm:text-4xl">{profile.lawyer.fullName}</h1>
+                <p className="mb-1 flex items-center gap-2 text-sm font-semibold uppercase text-forest">
+                  <ShieldCheck aria-hidden="true" className="h-4 w-4" />
+                  Approved lawyer
+                </p>
+                <h1 className="font-display text-3xl font-semibold sm:text-4xl">{profile.lawyer.fullName}</h1>
                 <p className="mt-2 text-gray-600">{profile.professionalTitle}</p>
               </div>
             </div>
 
-            <div className="grid bg-white lg:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="grid lg:grid-cols-[minmax(0,1fr)_320px]">
               <div className="px-6 py-8 sm:px-8">
                 <section aria-labelledby="biography-heading">
                   <h2 className="text-xl font-bold" id="biography-heading">Professional biography</h2>
@@ -130,7 +123,7 @@ const PublicLawyerProfilePage = () => {
                   <h2 className="text-xl font-bold" id="specializations-heading">Specializations</h2>
                   <ul className="mt-4 flex flex-wrap gap-2">
                     {profile.specializations.map((specialization) => (
-                      <li className="border border-line bg-paper px-3 py-2 text-sm" key={specialization}>
+                      <li className="rounded-lg border border-white/90 bg-white/65 px-3 py-2 text-sm font-semibold shadow-sm" key={specialization}>
                         {specialization}
                       </li>
                     ))}
@@ -140,7 +133,7 @@ const PublicLawyerProfilePage = () => {
                 <section className="mt-8" aria-labelledby="availability-heading">
                   <h2 className="text-xl font-bold" id="availability-heading">Weekly availability</h2>
                   {profile.weeklyAvailability.length > 0 ? (
-                    <ul className="mt-4 divide-y divide-line border-y border-line">
+                    <ul className="mt-4 divide-y divide-white/80 overflow-hidden rounded-lg border border-white/90 bg-white/55 px-4">
                       {profile.weeklyAvailability.map((slot, index) => (
                         <li
                           className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"
@@ -161,7 +154,7 @@ const PublicLawyerProfilePage = () => {
                 </section>
               </div>
 
-              <aside className="border-t border-line bg-gray-50 px-6 py-8 lg:border-l lg:border-t-0">
+              <aside className="border-t border-white/80 bg-white/42 px-6 py-8 lg:border-l lg:border-t-0">
                 <h2 className="text-lg font-bold">Consultation details</h2>
                 <dl className="mt-5 space-y-5">
                   <div>
@@ -188,7 +181,7 @@ const PublicLawyerProfilePage = () => {
                 </dl>
                 {profile.weeklyAvailability.length > 0 ? (
                   <Link
-                    className="mt-8 flex h-12 items-center justify-center gap-2 bg-forest px-5 text-sm font-semibold text-white hover:bg-forest-dark focus:outline-none focus:ring-2 focus:ring-forest focus:ring-offset-2"
+                    className="mt-8 flex h-12 items-center justify-center gap-2 rounded-lg bg-forest px-5 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-forest-dark focus:outline-none focus:ring-2 focus:ring-forest focus:ring-offset-2"
                     to={`/lawyers/${profile.id}/book`}
                   >
                     Request consultation

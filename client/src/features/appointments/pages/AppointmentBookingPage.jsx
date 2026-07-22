@@ -11,16 +11,15 @@ import {
   LockKeyhole,
   MapPin,
   Phone,
-  Scale,
   ShieldCheck,
   Video,
 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 
 import FieldError from '../../auth/components/FieldError.jsx';
+import ClientWorkspaceHeader from '../../auth/components/ClientWorkspaceHeader.jsx';
 import { getAuthApiError } from '../../auth/utils/apiError.js';
 import { getPublicLawyerProfile } from '../../lawyers/api/publicLawyer.api.js';
-import AuthenticatedHeaderActions from '../../notifications/components/AuthenticatedHeaderActions.jsx';
 import {
   formatConsultationFee,
   getLawyerInitials,
@@ -136,23 +135,10 @@ const AppointmentBookingPage = () => {
   };
 
   return (
-    <main className="min-h-screen bg-[#f4f6f5] text-ink">
-      <header className="border-b border-line bg-white">
-        <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center bg-ink text-white">
-              <Scale aria-hidden="true" className="h-5 w-5" />
-            </span>
-            <div>
-              <span className="block text-lg font-bold leading-5">LexSecure</span>
-              <span className="text-xs text-gray-500">Secure consultation request</span>
-            </div>
-          </div>
-          <AuthenticatedHeaderActions />
-        </div>
-      </header>
+    <main className="min-h-screen bg-[#e8eeeb] text-ink">
+      <ClientWorkspaceHeader activePath="/lawyers" />
 
-      <div className="mx-auto max-w-7xl px-5 py-7 sm:px-8 sm:py-10">
+      <div className="client-page-enter mx-auto max-w-7xl px-5 py-7 sm:px-8 sm:py-10">
         <Link
           className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-forest hover:underline"
           to={`/lawyers/${profileId}`}
@@ -162,7 +148,7 @@ const AppointmentBookingPage = () => {
         </Link>
 
         {isLoading ? (
-          <div className="flex min-h-72 items-center justify-center gap-2 border border-line bg-white text-sm font-semibold" aria-busy="true" aria-live="polite">
+          <div className="flex min-h-72 items-center justify-center gap-2 rounded-lg border border-white/90 bg-white/65 text-sm font-semibold shadow-lg shadow-ink/5 backdrop-blur-xl" aria-busy="true" aria-live="polite">
             <LoaderCircle aria-hidden="true" className="h-5 w-5 animate-spin text-forest" />
             Preparing secure booking
           </div>
@@ -176,11 +162,11 @@ const AppointmentBookingPage = () => {
         ) : null}
 
         {!isLoading && !loadError && profile && confirmation ? (
-          <section className="mx-auto max-w-3xl border border-line bg-white" aria-labelledby="confirmation-heading">
-            <div className="border-b border-line bg-emerald-50 px-6 py-8 text-center sm:px-10">
+          <section className="mx-auto max-w-3xl overflow-hidden rounded-lg border border-white/90 bg-white/65 shadow-panel backdrop-blur-xl" aria-labelledby="confirmation-heading">
+            <div className="border-b border-white/80 bg-emerald-50/75 px-6 py-8 text-center sm:px-10">
               <CheckCircle2 aria-hidden="true" className="mx-auto h-12 w-12 text-forest" />
               <p className="mt-4 text-sm font-semibold uppercase text-forest">Request received</p>
-              <h1 className="mt-2 text-3xl font-bold" id="confirmation-heading">
+              <h1 className="mt-2 font-display text-3xl font-semibold" id="confirmation-heading">
                 Consultation pending approval
               </h1>
               <p className="mx-auto mt-3 max-w-xl text-gray-600">
@@ -209,13 +195,13 @@ const AppointmentBookingPage = () => {
             </dl>
             <div className="flex flex-col gap-3 px-6 py-6 sm:flex-row sm:justify-end">
               <Link
-                className="flex h-11 items-center justify-center border border-gray-300 bg-white px-5 text-sm font-semibold hover:bg-gray-100"
+                className="flex h-11 items-center justify-center rounded-lg border border-gray-300 bg-white px-5 text-sm font-semibold hover:bg-gray-100"
                 to="/lawyers"
               >
                 Browse lawyers
               </Link>
               <Link
-                className="flex h-11 items-center justify-center bg-forest px-5 text-sm font-semibold text-white hover:bg-forest-dark"
+                className="flex h-11 items-center justify-center rounded-lg bg-forest px-5 text-sm font-semibold text-white hover:bg-forest-dark"
                 to="/client/account"
               >
                 Return to account
@@ -229,13 +215,13 @@ const AppointmentBookingPage = () => {
             <div className="mb-7 flex flex-col justify-between gap-5 border-b border-line pb-7 md:flex-row md:items-end">
               <div>
                 <p className="mb-2 text-sm font-semibold uppercase text-forest">Consultation request</p>
-                <h1 className="text-3xl font-bold sm:text-4xl">Choose a suitable time</h1>
+                <h1 className="font-display text-3xl font-semibold sm:text-4xl">Choose a suitable time</h1>
                 <p className="mt-2 max-w-2xl text-gray-600">
                   Times are shown in the lawyer timezone: {profile.timezone}.
                 </p>
               </div>
-              <div className="flex items-center gap-3 bg-white px-4 py-3">
-                <span className="grid h-11 w-11 shrink-0 place-items-center bg-forest text-sm font-bold text-white">
+              <div className="flex items-center gap-3 rounded-lg border border-white/90 bg-white/65 px-4 py-3 shadow-sm backdrop-blur-lg">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-forest text-sm font-bold text-white shadow-md">
                   {getLawyerInitials(profile.lawyer.fullName)}
                 </span>
                 <div>
@@ -247,7 +233,7 @@ const AppointmentBookingPage = () => {
 
             <form className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]" noValidate onSubmit={handleSubmit}>
               <div className="space-y-6">
-                <section className="border border-line bg-white px-5 py-6 sm:px-7" aria-labelledby="schedule-heading">
+                <section className="booking-step-panel px-5 py-6 sm:px-7" aria-labelledby="schedule-heading">
                   <div className="mb-6 flex items-center gap-3">
                     <span className="grid h-9 w-9 place-items-center bg-emerald-50 text-forest">
                       <CalendarDays aria-hidden="true" className="h-5 w-5" />
@@ -297,7 +283,7 @@ const AppointmentBookingPage = () => {
 
                           return (
                             <label
-                              className={`flex min-h-12 cursor-pointer items-center justify-between gap-3 border px-3 py-2 text-sm transition-colors ${
+                            className={`flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm transition-colors ${
                                 isSelected
                                   ? 'border-forest bg-emerald-50 text-forest'
                                   : 'border-line bg-white hover:border-gray-400'
@@ -327,7 +313,7 @@ const AppointmentBookingPage = () => {
                   </fieldset>
                 </section>
 
-                <section className="border border-line bg-white px-5 py-6 sm:px-7" aria-labelledby="format-heading">
+                <section className="booking-step-panel px-5 py-6 sm:px-7" aria-labelledby="format-heading">
                   <div className="mb-6 flex items-center gap-3">
                     <span className="grid h-9 w-9 place-items-center bg-emerald-50 text-forest">
                       <Video aria-hidden="true" className="h-5 w-5" />
@@ -346,7 +332,7 @@ const AppointmentBookingPage = () => {
 
                         return (
                           <label
-                            className={`cursor-pointer border px-4 py-4 transition-colors ${
+                            className={`cursor-pointer rounded-lg border px-4 py-4 transition-colors ${
                               isSelected
                                 ? 'border-forest bg-emerald-50'
                                 : 'border-line bg-white hover:border-gray-400'
@@ -374,7 +360,7 @@ const AppointmentBookingPage = () => {
                   </fieldset>
                 </section>
 
-                <section className="border border-line bg-white px-5 py-6 sm:px-7" aria-labelledby="summary-heading">
+                <section className="booking-step-panel px-5 py-6 sm:px-7" aria-labelledby="summary-heading">
                   <div className="mb-6 flex items-center gap-3">
                     <span className="grid h-9 w-9 place-items-center bg-emerald-50 text-forest">
                       <LockKeyhole aria-hidden="true" className="h-5 w-5" />
@@ -408,8 +394,8 @@ const AppointmentBookingPage = () => {
                 </section>
               </div>
 
-              <aside className="h-fit border border-line bg-white lg:sticky lg:top-6">
-                <div className="border-b border-line px-5 py-5">
+              <aside className="h-fit overflow-hidden rounded-lg border border-white/90 bg-white/65 shadow-lg shadow-ink/5 backdrop-blur-xl lg:sticky lg:top-24">
+                <div className="border-b border-white/80 px-5 py-5">
                   <h2 className="text-lg font-bold">Request summary</h2>
                   <p className="mt-1 text-sm text-gray-600">Review before submitting</p>
                 </div>
@@ -454,7 +440,7 @@ const AppointmentBookingPage = () => {
                     </p>
                   ) : null}
                   <button
-                    className="flex h-12 w-full items-center justify-center gap-2 bg-forest px-5 text-sm font-semibold text-white hover:bg-forest-dark focus:outline-none focus:ring-2 focus:ring-forest focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-forest px-5 text-sm font-semibold text-white shadow-md hover:bg-forest-dark focus:outline-none focus:ring-2 focus:ring-forest focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
                     disabled={isSubmitting}
                     type="submit"
                   >
