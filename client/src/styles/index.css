@@ -250,7 +250,8 @@
   animation: auth-photo-float 5s ease-in-out infinite;
 }
 
-.login-form .form-input {
+.login-form .form-input,
+.registration-form .form-input {
   height: 2.875rem;
   background: rgba(255, 255, 255, 0.68);
   border-color: rgba(255, 255, 255, 0.92);
@@ -259,7 +260,8 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.82);
 }
 
-.login-form .form-input:focus {
+.login-form .form-input:focus,
+.registration-form .form-input:focus {
   background: rgba(255, 255, 255, 0.94);
 }
 

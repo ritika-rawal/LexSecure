@@ -6,27 +6,27 @@ import loginVisual from '../../../assets/lexsecure-login.png';
 import loginOfficeVisual from '../../../assets/lexsecure-login-office.png';
 
 const AuthLayout = ({ children, securityMessage, visualMode = 'default' }) => {
-  const isLoginLayout = visualMode === 'login';
+  const isEditorialLayout = visualMode === 'editorial';
 
   return (
   <main className="min-h-screen bg-paper">
     <div className={`mx-auto grid min-h-screen ${
-      isLoginLayout
+      isEditorialLayout
         ? 'lg:grid-cols-[minmax(0,1.08fr)_minmax(500px,0.92fr)]'
         : 'max-w-[1440px] lg:grid-cols-[380px_minmax(0,1fr)]'
     }`}>
       <aside className={`relative overflow-hidden bg-ink px-6 py-7 text-white sm:px-10 lg:flex lg:flex-col lg:justify-between lg:py-12 ${
-        isLoginLayout ? 'lg:px-14 xl:px-20' : 'lg:px-12'
+        isEditorialLayout ? 'lg:px-14 xl:px-20' : 'lg:px-12'
       }`}>
         <img
           alt=""
           aria-hidden="true"
           className={`absolute inset-0 h-full w-full object-cover ${
-            isLoginLayout ? 'object-center opacity-80 animate-hero-reveal' : 'object-[72%_center] opacity-30'
+            isEditorialLayout ? 'object-center opacity-80 animate-hero-reveal' : 'object-[72%_center] opacity-30'
           }`}
-          src={isLoginLayout ? loginOfficeVisual : authVisual}
+          src={isEditorialLayout ? loginOfficeVisual : authVisual}
         />
-        <div className={`absolute inset-0 ${isLoginLayout ? 'bg-ink/55' : 'bg-ink/80'}`} />
+        <div className={`absolute inset-0 ${isEditorialLayout ? 'bg-ink/55' : 'bg-ink/80'}`} />
         <Link className="relative z-10 flex items-center gap-3" to="/">
           <span className="grid h-11 w-11 place-items-center rounded-lg border border-white/25 bg-white/10 backdrop-blur-md">
             <Scale aria-hidden="true" className="h-6 w-6" />
@@ -34,22 +34,22 @@ const AuthLayout = ({ children, securityMessage, visualMode = 'default' }) => {
           <span className="text-xl font-bold">LexSecure</span>
         </Link>
 
-        <div className={`relative z-10 mt-12 hidden lg:block ${isLoginLayout ? 'max-w-xl' : ''}`}>
+        <div className={`relative z-10 mt-12 hidden lg:block ${isEditorialLayout ? 'max-w-xl' : ''}`}>
           <Scale
             aria-hidden="true"
-            className={`mb-8 text-emerald-300 ${isLoginLayout ? 'h-16 w-16' : 'h-20 w-20'}`}
+            className={`mb-8 text-emerald-300 ${isEditorialLayout ? 'h-16 w-16' : 'h-20 w-20'}`}
             strokeWidth={1.25}
           />
-          <p className={`font-display font-semibold leading-tight ${isLoginLayout ? 'max-w-lg text-4xl xl:text-5xl' : 'max-w-xs text-3xl'}`}>
+          <p className={`font-display font-semibold leading-tight ${isEditorialLayout ? 'max-w-lg text-4xl xl:text-5xl' : 'max-w-xs text-3xl'}`}>
             Legal consultations built around confidentiality.
           </p>
-          <div className={`mt-8 flex items-center gap-3 rounded-lg border border-white/20 bg-white/10 p-4 text-sm text-gray-100 shadow-xl backdrop-blur-xl ${isLoginLayout ? 'max-w-md' : ''}`}>
+          <div className={`mt-8 flex items-center gap-3 rounded-lg border border-white/20 bg-white/10 p-4 text-sm text-gray-100 shadow-xl backdrop-blur-xl ${isEditorialLayout ? 'max-w-md' : ''}`}>
             <LockKeyhole aria-hidden="true" className="h-5 w-5 shrink-0 text-emerald-300" />
             <span>{securityMessage}</span>
           </div>
         </div>
 
-        {isLoginLayout ? (
+        {isEditorialLayout ? (
           <div className="relative z-10 mt-10 hidden items-end justify-between gap-6 lg:flex">
             <div className="flex items-center gap-3 text-sm font-semibold text-white">
               <span className="grid h-10 w-10 place-items-center rounded-lg border border-white/20 bg-white/10 backdrop-blur-xl">
@@ -68,8 +68,8 @@ const AuthLayout = ({ children, securityMessage, visualMode = 'default' }) => {
         )}
       </aside>
 
-      <section className={`relative flex items-center overflow-hidden px-5 py-8 sm:px-8 lg:px-12 xl:px-16 ${isLoginLayout ? 'bg-[#cfdcd5]' : 'bg-[#e8eeeb]'}`}>
-        {isLoginLayout ? (
+      <section className={`relative flex items-center overflow-hidden px-5 py-8 sm:px-8 lg:px-12 xl:px-16 ${isEditorialLayout ? 'bg-[#cfdcd5]' : 'bg-[#e8eeeb]'}`}>
+        {isEditorialLayout ? (
           <>
             <img alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-[0.12] blur-[2px]" src={loginOfficeVisual} />
             <div aria-hidden="true" className="absolute inset-0 bg-[#dce7e1]/70 backdrop-blur-sm" />
@@ -77,7 +77,7 @@ const AuthLayout = ({ children, securityMessage, visualMode = 'default' }) => {
           </>
         ) : null}
         <div className={`relative mx-auto w-full animate-rise-in rounded-lg border border-white/90 shadow-panel backdrop-blur-2xl ${
-          isLoginLayout
+          isEditorialLayout
             ? 'max-w-[500px] bg-white/55 p-6 shadow-ink/15 sm:p-8'
             : 'max-w-2xl bg-white/70 p-6 sm:p-10'
         }`}>
