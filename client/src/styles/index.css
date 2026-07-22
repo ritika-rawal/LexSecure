@@ -246,6 +246,32 @@
   overflow: hidden;
 }
 
+.auth-photo-card {
+  animation: auth-photo-float 5s ease-in-out infinite;
+}
+
+.login-form .form-input {
+  height: 2.875rem;
+  background: rgba(255, 255, 255, 0.68);
+  border-color: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 1px 2px rgba(22, 33, 29, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+.login-form .form-input:focus {
+  background: rgba(255, 255, 255, 0.94);
+}
+
+@keyframes auth-photo-float {
+  0%, 100% {
+    transform: translateY(0) rotate(1deg);
+  }
+  50% {
+    transform: translateY(-7px) rotate(-0.5deg);
+  }
+}
+
 .service-card > * {
   transform: translateZ(18px);
 }
@@ -334,6 +360,10 @@
   }
 
   .security-track {
+    animation: none;
+  }
+
+  .auth-photo-card {
     animation: none;
   }
 
