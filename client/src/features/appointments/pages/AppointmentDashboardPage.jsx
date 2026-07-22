@@ -16,6 +16,7 @@ import { Link } from 'react-router-dom';
 import { USER_ROLES } from '../../auth/constants/userRoles.js';
 import { useAuth } from '../../auth/hooks/useAuth.js';
 import { getAuthApiError } from '../../auth/utils/apiError.js';
+import ClientWorkspaceHeader from '../../auth/components/ClientWorkspaceHeader.jsx';
 import AuthenticatedHeaderActions from '../../notifications/components/AuthenticatedHeaderActions.jsx';
 import { getMyAppointments } from '../api/appointmentDashboard.api.js';
 import AppointmentHistoryFilters from '../components/AppointmentHistoryFilters.jsx';
@@ -107,8 +108,8 @@ const AppointmentDashboardPage = () => {
   };
 
   return (
-    <main className="min-h-screen bg-[#f4f6f5] text-ink">
-      <header className="border-b border-line bg-white">
+    <main className={`min-h-screen text-ink ${isClient ? 'bg-[#e8eeeb]' : 'bg-[#f4f6f5]'}`}>
+      {isClient ? <ClientWorkspaceHeader activePath="/client/appointments" /> : <header className="border-b border-line bg-white">
         <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
           <div className="flex items-center gap-3">
             <span className="grid h-10 w-10 place-items-center bg-ink text-white">
@@ -123,9 +124,9 @@ const AppointmentDashboardPage = () => {
           </div>
           <AuthenticatedHeaderActions />
         </div>
-      </header>
+      </header>}
 
-      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
+      <div className={`mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-10 ${isClient ? 'client-page-enter' : ''}`}>
         <Link
           className="mb-7 inline-flex items-center gap-2 text-sm font-semibold text-forest hover:underline"
           to={isClient ? '/client/account' : '/lawyer/account'}
@@ -139,7 +140,7 @@ const AppointmentDashboardPage = () => {
             <p className="mb-2 text-sm font-semibold uppercase text-forest">
               {isClient ? 'Consultation tracking' : 'Consultation schedule'}
             </p>
-            <h1 className="text-3xl font-bold sm:text-4xl">
+            <h1 className={`${isClient ? 'font-display font-semibold' : 'font-bold'} text-3xl sm:text-4xl`}>
               {isClient ? 'My appointments' : 'My schedule'}
             </h1>
             <p className="mt-2 max-w-2xl text-gray-600">
@@ -147,7 +148,7 @@ const AppointmentDashboardPage = () => {
             </p>
           </div>
           <button
-            className="flex h-10 w-fit items-center gap-2 border border-gray-300 bg-white px-4 text-sm font-semibold hover:bg-gray-100 disabled:opacity-60"
+            className="flex h-10 w-fit items-center gap-2 rounded-lg border border-white/90 bg-white/70 px-4 text-sm font-semibold shadow-sm backdrop-blur-lg hover:bg-white disabled:opacity-60"
             disabled={isLoading}
             onClick={refreshDashboard}
             type="button"
@@ -157,8 +158,8 @@ const AppointmentDashboardPage = () => {
           </button>
         </div>
 
-        <div className="mb-7 overflow-x-auto border-y border-line bg-white" aria-label="Appointment status filter">
-          <div className="flex min-w-max border-b border-line px-2">
+        <div className="mb-7 overflow-x-auto rounded-lg border border-white/90 bg-white/60 shadow-lg shadow-ink/5 backdrop-blur-xl" aria-label="Appointment status filter">
+          <div className="flex min-w-max border-b border-white/80 px-2">
             {APPOINTMENT_VIEW_FILTERS.map((filter) => (
               <button
                 aria-pressed={view === filter.value}

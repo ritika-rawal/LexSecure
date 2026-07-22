@@ -8,7 +8,6 @@ import {
   ClipboardCheck,
   Scale,
   ScrollText,
-  Search,
   ShieldCheck,
   ShieldBan,
   UserRound,
@@ -20,6 +19,7 @@ import AccountDataImport from '../../export/components/AccountDataImport.jsx';
 import AuthenticatedHeaderActions from '../../notifications/components/AuthenticatedHeaderActions.jsx';
 import MfaSecurityPanel from '../components/MfaSecurityPanel.jsx';
 import PasswordSecurityPanel from '../components/PasswordSecurityPanel.jsx';
+import ClientDashboard from '../components/ClientDashboard.jsx';
 import { USER_ROLES } from '../constants/userRoles.js';
 import { useAuth } from '../hooks/useAuth.js';
 
@@ -27,6 +27,10 @@ const formatRole = (role) => role.charAt(0).toUpperCase() + role.slice(1);
 
 const AccountPage = () => {
   const { user } = useAuth();
+
+  if (user.role === USER_ROLES.CLIENT) {
+    return <ClientDashboard user={user} />;
+  }
 
   return (
     <main className="min-h-screen bg-paper text-ink">
@@ -87,40 +91,6 @@ const AccountPage = () => {
                   <span className="block font-bold">Lawyer profile</span>
                   <span className="mt-1 block text-sm text-gray-600">
                     Manage professional details and availability
-                  </span>
-                </span>
-              </span>
-              <ChevronRight aria-hidden="true" className="h-5 w-5 text-gray-500" />
-            </Link>
-          </div>
-        ) : null}
-        {user.role === USER_ROLES.CLIENT ? (
-          <div className="mb-8 grid gap-3 md:grid-cols-2">
-            <Link
-              className="flex items-center justify-between gap-4 border-l-4 border-forest bg-white px-5 py-5 hover:bg-emerald-50 sm:px-7"
-              to="/client/appointments"
-            >
-              <span className="flex items-center gap-3">
-                <CalendarRange aria-hidden="true" className="h-5 w-5 text-forest" />
-                <span>
-                  <span className="block font-bold">My appointments</span>
-                  <span className="mt-1 block text-sm text-gray-600">
-                    Track consultation requests and status
-                  </span>
-                </span>
-              </span>
-              <ChevronRight aria-hidden="true" className="h-5 w-5 text-gray-500" />
-            </Link>
-            <Link
-              className="flex items-center justify-between gap-4 border-l-4 border-forest bg-white px-5 py-5 hover:bg-emerald-50 sm:px-7"
-              to="/lawyers"
-            >
-              <span className="flex items-center gap-3">
-                <Search aria-hidden="true" className="h-5 w-5 text-forest" />
-                <span>
-                  <span className="block font-bold">Find a lawyer</span>
-                  <span className="mt-1 block text-sm text-gray-600">
-                    Browse approved lawyers and consultation availability
                   </span>
                 </span>
               </span>

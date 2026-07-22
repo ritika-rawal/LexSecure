@@ -49,7 +49,7 @@ const AppointmentHistoryFilters = ({
 
   return (
     <form
-      className="mb-7 border border-line bg-white"
+      className="mb-7 overflow-hidden rounded-lg border border-white/90 bg-white/60 shadow-lg shadow-ink/5 backdrop-blur-xl"
       noValidate
       onSubmit={handleSubmit}
     >
@@ -127,7 +127,7 @@ const AppointmentHistoryFilters = ({
           {hasFilters ? (
             <button
               aria-label="Clear appointment filters"
-              className="grid h-11 w-11 shrink-0 place-items-center border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-60"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-white/90 bg-white/70 shadow-sm hover:bg-white disabled:opacity-60"
               disabled={isLoading}
               onClick={clearFilters}
               title="Clear filters"
@@ -137,7 +137,7 @@ const AppointmentHistoryFilters = ({
             </button>
           ) : null}
           <button
-            className="flex h-11 flex-1 items-center justify-center gap-2 bg-forest px-4 text-sm font-semibold text-white hover:bg-forest-dark disabled:opacity-60"
+            className="flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-forest px-4 text-sm font-semibold text-white shadow-md hover:bg-forest-dark disabled:opacity-60"
             disabled={isLoading}
             type="submit"
           >
