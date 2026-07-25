@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AlertCircle, CheckCircle2, LoaderCircle } from 'lucide-react';
 
@@ -16,6 +16,7 @@ const VerifyEmailStatus = () => {
   const token = searchParams.get('token') || '';
   const [status, setStatus] = useState(STATUS.PENDING);
   const [message, setMessage] = useState('');
+  const submittedTokenRef = useRef('');
 
   useEffect(() => {
     if (!token) {
@@ -24,24 +25,25 @@ const VerifyEmailStatus = () => {
       return;
     }
 
-    let isCancelled = false;
+    // Verification tokens are single-use, so this guard stops React's
+    // development-mode double-invocation of effects (StrictMode) from
+    // submitting the same token twice and treating the resulting
+    // already-used error as the outcome of a fresh attempt. The request
+    // always runs to completion and updates the screen, regardless of
+    // which effect invocation started it.
+    if (submittedTokenRef.current === token) return;
+    submittedTokenRef.current = token;
 
     (async () => {
       try {
         const response = await confirmEmailVerification(token);
-        if (isCancelled) return;
         setStatus(STATUS.SUCCESS);
         setMessage(response.message);
       } catch (error) {
-        if (isCancelled) return;
         setStatus(STATUS.ERROR);
         setMessage(getAuthApiError(error, 'Verification could not be completed.').message);
       }
     })();
-
-    return () => {
-      isCancelled = true;
-    };
   }, [token]);
 
   return (
