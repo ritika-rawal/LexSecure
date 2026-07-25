@@ -2,6 +2,7 @@ import { body } from 'express-validator';
 
 import { SELF_REGISTRATION_ROLE_VALUES } from '../constants/user-roles.js';
 import { CAPTCHA_LIMITS } from '../constants/authentication-security.js';
+import { EMAIL_VERIFICATION_TOKEN_PATTERN } from '../constants/email-verification.js';
 import {
   PASSWORD_MAXIMUM_LENGTH,
   strongPasswordValidator,
@@ -54,4 +55,12 @@ export const loginValidator = [
     .withMessage('Security verification token must be text.')
     .isLength({ min: 1, max: CAPTCHA_LIMITS.TOKEN_MAXIMUM_LENGTH })
     .withMessage('Security verification token is invalid.'),
+];
+
+export const verifyEmailValidator = [
+  body('token')
+    .isString()
+    .withMessage('Verification token must be text.')
+    .matches(EMAIL_VERIFICATION_TOKEN_PATTERN)
+    .withMessage('Verification link is invalid or has expired.'),
 ];

@@ -123,6 +123,17 @@ const userSchema = new Schema(
       type: Date,
       select: false,
     },
+    emailVerificationTokenHash: {
+      type: String,
+      match: /^[a-f0-9]{64}$/,
+      unique: true,
+      sparse: true,
+      select: false,
+    },
+    emailVerificationExpiresAt: {
+      type: Date,
+      select: false,
+    },
   },
   {
     timestamps: true,
@@ -148,6 +159,8 @@ userSchema.set('toJSON', {
     delete returnedObject.authVersion;
     delete returnedObject.passwordResetTokenHash;
     delete returnedObject.passwordResetExpiresAt;
+    delete returnedObject.emailVerificationTokenHash;
+    delete returnedObject.emailVerificationExpiresAt;
     return returnedObject;
   },
 });

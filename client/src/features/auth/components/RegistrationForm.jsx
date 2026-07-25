@@ -30,7 +30,7 @@ const RegistrationForm = () => {
   const [values, setValues] = useState(INITIAL_VALUES);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
-  const [registeredUser, setRegisteredUser] = useState(null);
+  const [registrationMessage, setRegistrationMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -50,14 +50,14 @@ const RegistrationForm = () => {
     const validationErrors = validateRegistration(values);
     setErrors(validationErrors);
     setSubmitError('');
-    setRegisteredUser(null);
+    setRegistrationMessage('');
 
     if (Object.keys(validationErrors).length > 0) return;
 
     setIsSubmitting(true);
     try {
       const response = await registerUser(values);
-      setRegisteredUser(response.data.user);
+      setRegistrationMessage(response.message);
       setValues(INITIAL_VALUES);
     } catch (error) {
       const apiError = getAuthApiError(error, 'Registration could not be completed.');
@@ -81,11 +81,11 @@ const RegistrationForm = () => {
         </p>
       </div>
 
-      {registeredUser ? (
+      {registrationMessage ? (
         <div className="mb-5 rounded-lg border border-emerald-300 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm backdrop-blur-md" role="status">
           <div className="flex gap-3">
             <CheckCircle2 aria-hidden="true" className="h-5 w-5 shrink-0" />
-            <p><strong>Account created.</strong> {registeredUser.fullName} is registered as a {registeredUser.role}.</p>
+            <p>{registrationMessage}</p>
           </div>
         </div>
       ) : null}

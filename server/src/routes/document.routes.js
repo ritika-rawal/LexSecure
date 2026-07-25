@@ -9,6 +9,7 @@ import {
 import {
   authorizeRoles,
   requireAuthentication,
+  requireVerifiedEmail,
 } from '../middleware/auth.middleware.js';
 import { uploadSingleDocument } from '../middleware/document-upload.middleware.js';
 import { validateRequest } from '../middleware/validate-request.middleware.js';
@@ -25,6 +26,7 @@ router.post(
   '/appointments/:appointmentId/documents',
   asyncHandler(requireAuthentication),
   authorizeRoles(USER_ROLES.CLIENT),
+  requireVerifiedEmail,
   appointmentDocumentParamValidator,
   validateRequest,
   uploadSingleDocument,

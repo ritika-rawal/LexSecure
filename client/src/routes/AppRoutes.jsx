@@ -12,6 +12,7 @@ import LoginPage from '../features/auth/pages/LoginPage.jsx';
 import PasswordResetPage from '../features/auth/pages/PasswordResetPage.jsx';
 import RegisterPage from '../features/auth/pages/RegisterPage.jsx';
 import UnauthorizedPage from '../features/auth/pages/UnauthorizedPage.jsx';
+import VerifyEmailPage from '../features/auth/pages/VerifyEmailPage.jsx';
 import { getRoleHomePath } from '../features/auth/utils/roleHomePath.js';
 import LawyerProfilePage from '../features/lawyers/pages/LawyerProfilePage.jsx';
 import LawyerDirectoryPage from '../features/lawyers/pages/LawyerDirectoryPage.jsx';
@@ -52,6 +53,7 @@ const AppRoutes = () => {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       </Route>
       <Route path="/reset-password" element={<PasswordResetPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route element={<ProtectedRoute allowedRoles={[USER_ROLES.CLIENT]} />}>
         <Route path="/client/account" element={<AccountPage />} />
         <Route path="/client/appointments" element={<AppointmentDashboardPage />} />

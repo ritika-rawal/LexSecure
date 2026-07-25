@@ -5,10 +5,12 @@ import {
   loginUser,
   logoutUser,
   registerUser,
+  verifyEmail,
 } from '../controllers/auth.controller.js';
 import { getCsrfToken } from '../controllers/csrf.controller.js';
 import {
   csrfTokenRateLimiter,
+  emailVerificationConfirmRateLimiter,
   failedLoginRateLimiter,
   failedMfaVerificationRateLimiter,
   passwordResetConfirmRateLimiter,
@@ -24,7 +26,11 @@ import { changePassword } from '../controllers/password.controller.js';
 import { requireAuthentication } from '../middleware/auth.middleware.js';
 import { validateRequest } from '../middleware/validate-request.middleware.js';
 import { asyncHandler } from '../utils/async-handler.js';
-import { loginValidator, registerValidator } from '../validators/auth.validator.js';
+import {
+  loginValidator,
+  registerValidator,
+  verifyEmailValidator,
+} from '../validators/auth.validator.js';
 import {
   disableMfaValidator,
   emptyMfaSetupValidator,
@@ -52,6 +58,13 @@ router.post(
   registerValidator,
   validateRequest,
   asyncHandler(registerUser),
+);
+router.post(
+  '/verify-email',
+  emailVerificationConfirmRateLimiter,
+  verifyEmailValidator,
+  validateRequest,
+  asyncHandler(verifyEmail),
 );
 router.post(
   '/login',
