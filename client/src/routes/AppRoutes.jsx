@@ -12,6 +12,7 @@ import LoginPage from '../features/auth/pages/LoginPage.jsx';
 import PasswordResetPage from '../features/auth/pages/PasswordResetPage.jsx';
 import RegisterPage from '../features/auth/pages/RegisterPage.jsx';
 import UnauthorizedPage from '../features/auth/pages/UnauthorizedPage.jsx';
+import VerifyEmailPage from '../features/auth/pages/VerifyEmailPage.jsx';
 import { getRoleHomePath } from '../features/auth/utils/roleHomePath.js';
 import LawyerProfilePage from '../features/lawyers/pages/LawyerProfilePage.jsx';
 import LawyerDirectoryPage from '../features/lawyers/pages/LawyerDirectoryPage.jsx';
@@ -22,6 +23,7 @@ import AppointmentDashboardPage from '../features/appointments/pages/Appointment
 import LawyerReviewPage from '../features/admin/pages/LawyerReviewPage.jsx';
 import AuditLogPage from '../features/admin/pages/AuditLogPage.jsx';
 import IpAccessPage from '../features/admin/pages/IpAccessPage.jsx';
+import LandingPage from '../features/home/pages/LandingPage.jsx';
 
 const AppRoutes = () => {
   const { status, user } = useAuth();
@@ -44,12 +46,14 @@ const AppRoutes = () => {
 
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route element={<PublicOnlyRoute />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       </Route>
       <Route path="/reset-password" element={<PasswordResetPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route element={<ProtectedRoute allowedRoles={[USER_ROLES.CLIENT]} />}>
         <Route path="/client/account" element={<AccountPage />} />
         <Route path="/client/appointments" element={<AppointmentDashboardPage />} />
@@ -72,7 +76,7 @@ const AppRoutes = () => {
       <Route element={<ProtectedRoute allowedRoles={USER_ROLE_VALUES} />}>
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
       </Route>
-      <Route path="*" element={<Navigate replace to={user ? getRoleHomePath(user.role) : '/login'} />} />
+      <Route path="*" element={<Navigate replace to={user ? getRoleHomePath(user.role) : '/'} />} />
     </Routes>
   );
 };

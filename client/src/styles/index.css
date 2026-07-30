@@ -9,6 +9,7 @@
 
   html {
     color-scheme: light;
+    scroll-behavior: smooth;
   }
 
   body {
@@ -19,6 +20,12 @@
     font-family:
       Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
       sans-serif;
+    letter-spacing: 0;
+  }
+
+  ::selection {
+    background: #cce5dc;
+    color: #10372c;
   }
 
   button,
@@ -27,11 +34,26 @@
   textarea {
     font: inherit;
   }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button {
+    transition-duration: 180ms;
+    transition-property: background-color, border-color, color, box-shadow, opacity, transform;
+  }
+
+  :focus-visible {
+    outline: 2px solid #174c3c;
+    outline-offset: 3px;
+  }
 }
 
 @layer components {
   .form-input {
-    @apply h-12 w-full border border-line bg-white py-3 pl-11 pr-3 text-base text-ink outline-none transition-colors placeholder:text-gray-400 hover:border-gray-400 focus:border-forest focus:ring-2 focus:ring-forest/20;
+    @apply h-12 w-full rounded-lg border border-white/80 bg-white/75 py-3 pl-11 pr-3 text-base text-ink shadow-sm outline-none backdrop-blur-md transition-colors placeholder:text-gray-400 hover:border-gray-400 hover:bg-white focus:border-forest focus:bg-white focus:ring-2 focus:ring-forest/20;
   }
 
   .form-input[aria-invalid="true"] {
@@ -39,7 +61,7 @@
   }
 
   .role-option {
-    @apply flex h-12 cursor-pointer items-center justify-center gap-2 border border-line bg-white px-3 text-sm font-semibold text-gray-600 transition-colors hover:border-gray-400;
+    @apply flex h-12 cursor-pointer items-center justify-center gap-2 rounded-lg border border-white/80 bg-white/70 px-3 text-sm font-semibold text-gray-600 shadow-sm backdrop-blur-md transition-colors hover:border-gray-400 hover:bg-white;
   }
 
   .role-option:focus-within {
@@ -51,10 +73,382 @@
   }
 
   .profile-control {
-    @apply min-h-12 w-full border border-line bg-white px-3 py-2.5 text-base text-ink outline-none transition-colors placeholder:text-gray-400 hover:border-gray-400 focus:border-forest focus:ring-2 focus:ring-forest/20;
+    @apply min-h-12 w-full rounded-lg border border-white/80 bg-white/75 px-3 py-2.5 text-base text-ink shadow-sm outline-none backdrop-blur-md transition-colors placeholder:text-gray-400 hover:border-gray-400 hover:bg-white focus:border-forest focus:bg-white focus:ring-2 focus:ring-forest/20;
   }
 
   .profile-control[aria-invalid="true"] {
     @apply border-red-600 focus:border-red-600 focus:ring-red-200;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hero-reveal {
+  from {
+    opacity: 0;
+    transform: scale(1.025);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes curtain-left {
+  0%, 28% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-101%);
+  }
+}
+
+@keyframes curtain-right {
+  0%, 28% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(101%);
+  }
+}
+
+@keyframes word-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(105%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes security-marquee {
+  to {
+    transform: translateX(calc(-50% - 1.25rem));
+  }
+}
+
+.intro-curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+
+.intro-curtain::before,
+.intro-curtain::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50.1%;
+  background: #16211d;
+  content: '';
+}
+
+.intro-curtain::before {
+  left: 0;
+  animation: curtain-left 950ms cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+
+.intro-curtain::after {
+  right: 0;
+  animation: curtain-right 950ms cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+
+.scroll-progress {
+  transform: scaleX(0);
+  transition: transform 80ms linear;
+}
+
+.hero-copy {
+  overflow: hidden;
+}
+
+.hero-copy > p,
+.hero-copy > div {
+  animation: rise-in 700ms cubic-bezier(0.22, 1, 0.36, 1) 620ms both;
+}
+
+.hero-copy > p:nth-of-type(2) {
+  animation-delay: 720ms;
+}
+
+.hero-copy > div {
+  animation-delay: 820ms;
+}
+
+.hero-word {
+  animation: word-reveal 780ms cubic-bezier(0.22, 1, 0.36, 1) 450ms both;
+}
+
+.hero-word-delayed {
+  animation-delay: 560ms;
+}
+
+.security-rail {
+  overflow: hidden;
+}
+
+.security-track {
+  animation: security-marquee 28s linear infinite;
+}
+
+.animate-rise-in {
+  animation: rise-in 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-hero-reveal {
+  animation: hero-reveal 1.2s ease-out both;
+}
+
+.hero-parallax {
+  transform: translate3d(var(--hero-x, 0), calc(var(--hero-y, 0) + var(--hero-scroll, 0px)), 0) scale(1.015);
+  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.service-card {
+  position: relative;
+  overflow: hidden;
+  transform: perspective(900px) rotateX(var(--card-rotate-x, 0deg)) rotateY(var(--card-rotate-y, 0deg));
+  transform-style: preserve-3d;
+  transition:
+    background-color 250ms ease,
+    border-color 250ms ease,
+    box-shadow 300ms ease,
+    transform 180ms ease-out;
+  will-change: transform;
+}
+
+.service-card::before,
+.security-glass-tile::before {
+  position: absolute;
+  top: 0;
+  right: 12%;
+  left: 12%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.92);
+  content: '';
+}
+
+.security-glass-tile {
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-photo-card {
+  animation: auth-photo-float 5s ease-in-out infinite;
+}
+
+.login-form .form-input,
+.registration-form .form-input {
+  height: 2.875rem;
+  background: rgba(255, 255, 255, 0.68);
+  border-color: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 1px 2px rgba(22, 33, 29, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+.login-form .form-input:focus,
+.registration-form .form-input:focus {
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.client-profile-stack > section,
+.lawyer-profile-stack > section {
+  margin-top: 1rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow: 0 12px 30px rgba(22, 33, 29, 0.07);
+  backdrop-filter: blur(18px);
+}
+
+.client-profile-stack button,
+.lawyer-profile-stack button,
+.lawyer-profile-form button,
+.lawyer-request-card button {
+  border-radius: 0.5rem;
+}
+
+.lawyer-profile-form > section {
+  overflow: hidden;
+  border-color: rgba(255, 255, 255, 0.9);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.64);
+  box-shadow: 0 12px 30px rgba(22, 33, 29, 0.07);
+  backdrop-filter: blur(18px);
+}
+
+.lawyer-profile-form > section > div:first-child {
+  border-color: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.38);
+}
+
+.lawyer-request-card {
+  animation: rise-in 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.booking-step-panel {
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.64);
+  box-shadow: 0 12px 30px rgba(22, 33, 29, 0.07);
+  backdrop-filter: blur(18px);
+}
+
+.dashboard-action-arrow {
+  transition: transform 220ms ease;
+}
+
+.dashboard-action:hover .dashboard-action-arrow {
+  transform: translateX(4px);
+}
+
+.client-page-enter {
+  animation: rise-in 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.lawyer-directory-card,
+.client-appointment-card {
+  animation: rise-in 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.client-appointment-card button {
+  border-radius: 0.5rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dashboard-motion-ready [data-dashboard-reveal] {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 650ms cubic-bezier(0.22, 1, 0.36, 1), transform 650ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .dashboard-motion-ready [data-dashboard-reveal].is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes auth-photo-float {
+  0%, 100% {
+    transform: translateY(0) rotate(1deg);
+  }
+  50% {
+    transform: translateY(-7px) rotate(-0.5deg);
+  }
+}
+
+.service-card > * {
+  transform: translateZ(18px);
+}
+
+.cta-arrow {
+  transition: transform 220ms ease;
+}
+
+.group:hover .cta-arrow {
+  transform: translateX(4px);
+}
+
+.service-icon {
+  transition: background-color 250ms ease, transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.group:hover .service-icon {
+  transform: translateY(-3px) rotate(-3deg);
+}
+
+.nav-underline {
+  position: relative;
+}
+
+.nav-underline::after {
+  position: absolute;
+  right: 0;
+  bottom: -7px;
+  left: 0;
+  height: 2px;
+  background: currentColor;
+  content: '';
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 220ms ease;
+}
+
+.nav-underline:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .motion-ready [data-reveal] {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 700ms cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
+      transform 700ms cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms);
+  }
+
+  .motion-ready [data-reveal='left'] {
+    transform: translateX(-32px);
+  }
+
+  .motion-ready [data-reveal='right'] {
+    transform: translateX(32px);
+  }
+
+  .motion-ready [data-reveal].is-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .hero-parallax {
+    transform: none;
+  }
+
+  .intro-curtain {
+    display: none;
+  }
+
+  .security-track {
+    animation: none;
+  }
+
+  .auth-photo-card {
+    animation: none;
+  }
+
+  .service-card,
+  .service-card > * {
+    transform: none;
   }
 }

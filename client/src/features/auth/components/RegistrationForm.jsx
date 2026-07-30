@@ -30,7 +30,7 @@ const RegistrationForm = () => {
   const [values, setValues] = useState(INITIAL_VALUES);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
-  const [registeredUser, setRegisteredUser] = useState(null);
+  const [registrationMessage, setRegistrationMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -50,14 +50,14 @@ const RegistrationForm = () => {
     const validationErrors = validateRegistration(values);
     setErrors(validationErrors);
     setSubmitError('');
-    setRegisteredUser(null);
+    setRegistrationMessage('');
 
     if (Object.keys(validationErrors).length > 0) return;
 
     setIsSubmitting(true);
     try {
       const response = await registerUser(values);
-      setRegisteredUser(response.data.user);
+      setRegistrationMessage(response.message);
       setValues(INITIAL_VALUES);
     } catch (error) {
       const apiError = getAuthApiError(error, 'Registration could not be completed.');
@@ -69,26 +69,29 @@ const RegistrationForm = () => {
   };
 
   return (
-    <div>
-      <div className="mb-8">
-        <p className="mb-2 text-sm font-semibold uppercase text-forest">Secure registration</p>
-        <h1 className="text-3xl font-bold text-ink sm:text-4xl">Create your LexSecure account</h1>
-        <p className="mt-3 leading-7 text-gray-600">
+    <div className="registration-form">
+      <div className="mb-6">
+        <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase text-forest">
+          <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-accent" />
+          Secure registration
+        </p>
+        <h1 className="font-display text-3xl font-semibold text-ink sm:text-4xl">Create your LexSecure account</h1>
+        <p className="mt-2 text-sm leading-6 text-gray-600 sm:text-base">
           Register as a client seeking legal support or as a lawyer offering consultations.
         </p>
       </div>
 
-      {registeredUser ? (
-        <div className="mb-6 border border-emerald-300 bg-emerald-50 p-4 text-emerald-900" role="status">
+      {registrationMessage ? (
+        <div className="mb-5 rounded-lg border border-emerald-300 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm backdrop-blur-md" role="status">
           <div className="flex gap-3">
             <CheckCircle2 aria-hidden="true" className="h-5 w-5 shrink-0" />
-            <p><strong>Account created.</strong> {registeredUser.fullName} is registered as a {registeredUser.role}.</p>
+            <p>{registrationMessage}</p>
           </div>
         </div>
       ) : null}
 
       {submitError ? (
-        <div className="mb-6 border border-red-300 bg-red-50 p-4 text-sm text-red-800" role="alert">
+        <div className="mb-5 rounded-lg border border-red-300 bg-red-50/90 p-4 text-sm text-red-800 shadow-sm backdrop-blur-md" role="alert">
           <div className="flex gap-2">
             <AlertCircle aria-hidden="true" className="h-5 w-5 shrink-0" />
             <p>{submitError}</p>
@@ -96,7 +99,7 @@ const RegistrationForm = () => {
         </div>
       ) : null}
 
-      <form className="space-y-5" noValidate onSubmit={handleSubmit}>
+      <form className="space-y-4" noValidate onSubmit={handleSubmit}>
         <div>
           <label className="mb-2 block text-sm font-semibold text-ink" htmlFor="fullName">Full name</label>
           <div className="relative">
@@ -160,7 +163,7 @@ const RegistrationForm = () => {
           <FieldError id="role-error" message={errors.role} />
         </fieldset>
 
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           {[
             { name: 'password', label: 'Password', placeholder: 'At least 12 characters' },
             { name: 'confirmPassword', label: 'Confirm password', placeholder: 'Repeat your password' },
@@ -203,13 +206,13 @@ const RegistrationForm = () => {
           ))}
         </div>
 
-        <button className="flex h-12 w-full items-center justify-center gap-2 bg-forest px-5 font-semibold text-white hover:bg-forest-dark disabled:opacity-60" disabled={isSubmitting} type="submit">
+        <button className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-forest px-5 font-semibold text-white shadow-lg shadow-forest/20 hover:-translate-y-0.5 hover:bg-forest-dark disabled:opacity-60" disabled={isSubmitting} type="submit">
           {isSubmitting ? <LoaderCircle aria-hidden="true" className="h-5 w-5 animate-spin" /> : null}
           {isSubmitting ? 'Creating account' : 'Create account'}
         </button>
       </form>
 
-      <p className="mt-7 border-t border-line pt-6 text-center text-sm text-gray-600">
+      <p className="mt-6 border-t border-white/80 pt-5 text-center text-sm text-gray-600">
         Already registered?{' '}
         <Link className="font-semibold text-forest hover:underline" to="/login">Sign in</Link>
       </p>

@@ -69,7 +69,7 @@ const LawyerReviews = ({ profileId }) => {
   }, [page, profileId]);
 
   return (
-    <section className="border-t border-line bg-white px-6 py-8 sm:px-8" aria-labelledby="reviews-heading">
+    <section className="border-t border-white/80 bg-white/38 px-6 py-8 sm:px-8" aria-labelledby="reviews-heading">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <h2 className="text-xl font-bold" id="reviews-heading">Client reviews</h2>
@@ -87,7 +87,7 @@ const LawyerReviews = ({ profileId }) => {
           <nav className="flex items-center gap-2" aria-label="Review pages">
             <button
               aria-label="Previous review page"
-              className="grid h-9 w-9 place-items-center border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-40"
+              className="grid h-9 w-9 place-items-center rounded-lg border border-white/90 bg-white/70 hover:bg-white disabled:opacity-40"
               disabled={page <= 1}
               onClick={() => setPage((current) => Math.max(1, current - 1))}
               title="Previous page"
@@ -97,7 +97,7 @@ const LawyerReviews = ({ profileId }) => {
             </button>
             <button
               aria-label="Next review page"
-              className="grid h-9 w-9 place-items-center border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-40"
+              className="grid h-9 w-9 place-items-center rounded-lg border border-white/90 bg-white/70 hover:bg-white disabled:opacity-40"
               disabled={page >= pagination.totalPages}
               onClick={() => setPage((current) => current + 1)}
               title="Next page"
@@ -124,14 +124,14 @@ const LawyerReviews = ({ profileId }) => {
       ) : null}
 
       {!isLoading && !loadError && reviews.length === 0 ? (
-        <div className="mt-6 border border-dashed border-gray-300 px-5 py-10 text-center">
+        <div className="mt-6 rounded-lg border border-dashed border-gray-300 bg-white/45 px-5 py-10 text-center">
           <MessageSquareText aria-hidden="true" className="mx-auto h-7 w-7 text-gray-400" />
           <p className="mt-3 text-sm font-semibold">No verified reviews yet</p>
         </div>
       ) : null}
 
       {!isLoading && !loadError && reviews.length > 0 ? (
-        <ul className="mt-6 divide-y divide-line border-y border-line">
+        <ul className="mt-6 divide-y divide-white/80 overflow-hidden rounded-lg border border-white/90 bg-white/45 px-5">
           {reviews.map((review) => (
             <li className="py-5" key={review.id}>
               <div className="flex flex-wrap items-center justify-between gap-3">

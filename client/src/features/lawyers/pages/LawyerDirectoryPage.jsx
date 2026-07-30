@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   LoaderCircle,
-  Scale,
   Search,
   UsersRound,
   X,
@@ -14,7 +13,7 @@ import {
 import { Link } from 'react-router-dom';
 
 import { getAuthApiError } from '../../auth/utils/apiError.js';
-import AuthenticatedHeaderActions from '../../notifications/components/AuthenticatedHeaderActions.jsx';
+import ClientWorkspaceHeader from '../../auth/components/ClientWorkspaceHeader.jsx';
 import { getPublicLawyerProfiles } from '../api/publicLawyer.api.js';
 import LawyerDirectoryCard from '../components/LawyerDirectoryCard.jsx';
 import { validateSpecializationFilter } from '../utils/publicLawyer.js';
@@ -101,20 +100,10 @@ const LawyerDirectoryPage = () => {
   };
 
   return (
-    <main className="min-h-screen bg-paper text-ink">
-      <header className="border-b border-line bg-white">
-        <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center bg-ink text-white">
-              <Scale aria-hidden="true" className="h-5 w-5" />
-            </span>
-            <span className="text-lg font-bold">LexSecure</span>
-          </div>
-          <AuthenticatedHeaderActions />
-        </div>
-      </header>
+    <main className="min-h-screen bg-[#e8eeeb] text-ink">
+      <ClientWorkspaceHeader activePath="/lawyers" />
 
-      <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-12">
+      <div className="client-page-enter mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-10">
         <Link
           className="mb-7 inline-flex items-center gap-2 text-sm font-semibold text-forest hover:underline"
           to="/client/account"
@@ -123,16 +112,16 @@ const LawyerDirectoryPage = () => {
           Back to account
         </Link>
 
-        <div className="mb-8">
+        <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <p className="mb-2 text-sm font-semibold uppercase text-forest">Approved professionals</p>
-          <h1 className="text-3xl font-bold sm:text-4xl">Find a lawyer</h1>
+          <h1 className="font-display text-3xl font-semibold sm:text-4xl">Find a lawyer</h1>
           <p className="mt-2 max-w-2xl text-gray-600">
             Browse verified professional profiles and recurring consultation availability.
           </p>
         </div>
 
         <form
-          className="mb-8 border-y border-line bg-white px-5 py-5 sm:px-6"
+          className="mb-8 rounded-lg border border-white/90 bg-white/60 px-5 py-5 shadow-lg shadow-ink/5 backdrop-blur-xl sm:px-6"
           noValidate
           onSubmit={applyFilter}
         >
@@ -158,7 +147,7 @@ const LawyerDirectoryPage = () => {
               />
             </div>
             <button
-              className="h-12 bg-forest px-5 text-sm font-semibold text-white hover:bg-forest-dark disabled:opacity-60"
+              className="h-12 rounded-lg bg-forest px-5 text-sm font-semibold text-white shadow-md hover:bg-forest-dark disabled:opacity-60"
               disabled={isLoading}
               type="submit"
             >
@@ -166,7 +155,7 @@ const LawyerDirectoryPage = () => {
             </button>
             {specialization ? (
               <button
-                className="flex h-12 items-center justify-center gap-2 border border-gray-300 bg-white px-4 text-sm font-semibold hover:bg-gray-100"
+                className="flex h-12 items-center justify-center gap-2 rounded-lg border border-white/90 bg-white/70 px-4 text-sm font-semibold shadow-sm hover:bg-white"
                 onClick={clearFilter}
                 type="button"
               >
@@ -199,14 +188,14 @@ const LawyerDirectoryPage = () => {
         ) : null}
 
         {isLoading ? (
-          <div className="flex min-h-64 items-center justify-center gap-2 border border-line bg-white text-sm font-semibold" aria-busy="true" aria-live="polite">
+          <div className="flex min-h-64 items-center justify-center gap-2 rounded-lg border border-white/90 bg-white/60 text-sm font-semibold shadow-lg backdrop-blur-xl" aria-busy="true" aria-live="polite">
             <LoaderCircle aria-hidden="true" className="h-5 w-5 animate-spin text-forest" />
             Loading approved lawyers
           </div>
         ) : null}
 
         {!isLoading && !loadError && profiles.length === 0 ? (
-          <section className="border border-line bg-white px-6 py-16 text-center">
+          <section className="rounded-lg border border-white/90 bg-white/60 px-6 py-16 text-center shadow-lg backdrop-blur-xl">
             <UsersRound aria-hidden="true" className="mx-auto mb-4 h-9 w-9 text-forest" />
             <h2 className="text-xl font-bold">No lawyers found</h2>
             <p className="mt-2 text-gray-600">

@@ -9,6 +9,7 @@ import {
 import {
   authorizeRoles,
   requireAuthentication,
+  requireVerifiedEmail,
 } from '../middleware/auth.middleware.js';
 import { validateRequest } from '../middleware/validate-request.middleware.js';
 import { asyncHandler } from '../utils/async-handler.js';
@@ -33,6 +34,7 @@ router.post(
   '/appointments/:appointmentId/review',
   asyncHandler(requireAuthentication),
   authorizeRoles(USER_ROLES.CLIENT),
+  requireVerifiedEmail,
   createReviewValidator,
   validateRequest,
   asyncHandler(createAppointmentReview),

@@ -12,9 +12,9 @@ import {
 } from '../utils/publicLawyer.js';
 
 const LawyerDirectoryCard = ({ profile }) => (
-  <article className="flex h-full flex-col border border-line bg-white">
-    <div className="flex items-start gap-4 border-b border-line px-5 py-5">
-      <span className="grid h-12 w-12 shrink-0 place-items-center bg-forest text-sm font-bold text-white">
+  <article className="lawyer-directory-card group flex h-full flex-col overflow-hidden rounded-lg border border-white/90 bg-white/60 shadow-lg shadow-ink/5 backdrop-blur-xl transition hover:-translate-y-1 hover:bg-white/80 hover:shadow-panel">
+    <div className="flex items-start gap-4 border-b border-white/80 px-5 py-5">
+      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-forest text-sm font-bold text-white shadow-md transition-transform group-hover:-rotate-2 group-hover:scale-105">
         {getLawyerInitials(profile.lawyer.fullName)}
       </span>
       <div className="min-w-0">
@@ -53,11 +53,11 @@ const LawyerDirectoryCard = ({ profile }) => (
       </p>
 
       <Link
-        className="mt-6 flex h-10 items-center justify-center gap-2 border border-forest px-4 text-sm font-semibold text-forest hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-forest focus:ring-offset-2"
+        className="mt-6 flex h-10 items-center justify-center gap-2 rounded-lg border border-forest bg-white/50 px-4 text-sm font-semibold text-forest shadow-sm hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-forest focus:ring-offset-2"
         to={`/lawyers/${profile.id}`}
       >
         View profile
-        <ArrowRight aria-hidden="true" className="h-4 w-4" />
+        <ArrowRight aria-hidden="true" className="lawyer-card-arrow h-4 w-4 transition-transform group-hover:translate-x-1" />
       </Link>
     </div>
   </article>

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { ArrowLeft, LoaderCircle, Scale } from 'lucide-react';
+import { ArrowLeft, LoaderCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { getAuthApiError } from '../../auth/utils/apiError.js';
-import AuthenticatedHeaderActions from '../../notifications/components/AuthenticatedHeaderActions.jsx';
+import LawyerWorkspaceHeader from '../../auth/components/LawyerWorkspaceHeader.jsx';
 import { getCurrentLawyerProfile } from '../api/lawyerProfile.api.js';
 import LawyerProfileForm from '../components/LawyerProfileForm.jsx';
 import { APPROVAL_LABELS } from '../constants/profile.js';
@@ -45,20 +45,10 @@ const LawyerProfilePage = () => {
   }, [reloadKey]);
 
   return (
-    <main className="min-h-screen bg-paper text-ink">
-      <header className="border-b border-line bg-white">
-        <div className="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center bg-ink text-white">
-              <Scale aria-hidden="true" className="h-5 w-5" />
-            </span>
-            <span className="text-lg font-bold">LexSecure</span>
-          </div>
-          <AuthenticatedHeaderActions />
-        </div>
-      </header>
+    <main className="min-h-screen bg-[#e8eeeb] text-ink">
+      <LawyerWorkspaceHeader activePath="/lawyer/profile" />
 
-      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
+      <div className="client-page-enter mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
         <Link
           className="mb-7 inline-flex items-center gap-2 text-sm font-semibold text-forest hover:underline"
           to="/lawyer/account"
@@ -70,16 +60,16 @@ const LawyerProfilePage = () => {
         <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <p className="mb-2 text-sm font-semibold uppercase text-forest">Lawyer profile</p>
-            <h1 className="text-3xl font-bold sm:text-4xl">
+            <h1 className="font-display text-3xl font-semibold sm:text-4xl">
               {profile ? 'Manage your profile' : 'Create your profile'}
             </h1>
           </div>
           {!isLoading && !loadError ? (
             <div className="flex gap-2 text-sm">
-              <span className="border border-line bg-white px-3 py-2 font-semibold">
+              <span className="rounded-lg border border-white/90 bg-white/70 px-3 py-2 font-semibold shadow-sm backdrop-blur-lg">
                 {profile ? APPROVAL_LABELS[profile.approvalStatus] : 'Not submitted'}
               </span>
-              <span className="border border-line bg-white px-3 py-2 text-gray-600">
+              <span className="rounded-lg border border-white/90 bg-white/70 px-3 py-2 text-gray-600 shadow-sm backdrop-blur-lg">
                 {profile?.isVisible ? 'Visible' : 'Hidden'}
               </span>
             </div>
@@ -87,7 +77,7 @@ const LawyerProfilePage = () => {
         </div>
 
         {isLoading ? (
-          <div className="flex min-h-56 items-center justify-center gap-2 bg-white text-sm font-semibold" aria-live="polite">
+          <div className="flex min-h-56 items-center justify-center gap-2 rounded-lg border border-white/90 bg-white/65 text-sm font-semibold shadow-lg shadow-ink/5 backdrop-blur-xl" aria-live="polite">
             <LoaderCircle aria-hidden="true" className="h-5 w-5 animate-spin text-forest" />
             Loading lawyer profile
           </div>

@@ -9,6 +9,11 @@ import { User } from '../models/User.model.js';
 import { recordAuditEventWithoutBlocking } from '../services/audit.service.js';
 import { establishAuthenticatedSession } from '../services/authentication-session.service.js';
 import {
+  consumeEmailVerificationToken,
+  issueEmailVerificationToken,
+} from '../services/email-verification.service.js';
+import { REGISTRATION_RESPONSE_MESSAGE } from '../constants/email-verification.js';
+import {
   isLoginLocked,
   isLoginCaptchaRequired,
   recordFailedLoginAttempt,
@@ -74,6 +79,13 @@ const requireValidCaptchaWhenChallenged = async (req) => {
   }
 };
 
+const respondToRegistration = (res) => {
+  res.status(202).json({
+    status: 'success',
+    message: REGISTRATION_RESPONSE_MESSAGE,
+  });
+};
+
 export const registerUser = async (req, res) => {
   const { fullName, email, password, role } = req.body;
   const normalizedEmail = email.toLowerCase();
@@ -81,9 +93,11 @@ export const registerUser = async (req, res) => {
   const existingUser = await User.exists({ email: normalizedEmail });
 
   if (existingUser) {
-    const error = new Error('An account with this email already exists.');
-    error.statusCode = 409;
-    throw error;
+    // Perform equivalent password-hashing work so response timing does not
+    // reveal whether the email was already registered.
+    await hashPassword(password);
+    respondToRegistration(res);
+    return;
   }
 
   const passwordHash = await hashPassword(password);
@@ -102,9 +116,10 @@ export const registerUser = async (req, res) => {
     });
   } catch (error) {
     if (error.code === 11000) {
-      const duplicateEmailError = new Error('An account with this email already exists.');
-      duplicateEmailError.statusCode = 409;
-      throw duplicateEmailError;
+      // Another request won a registration race for this email; respond
+      // exactly like the known-duplicate path above.
+      respondToRegistration(res);
+      return;
     }
 
     throw error;
@@ -119,12 +134,19 @@ export const registerUser = async (req, res) => {
     targetId: user._id,
   });
 
-  res.status(201).json({
+  await issueEmailVerificationToken({ req, user });
+
+  respondToRegistration(res);
+};
+
+export const verifyEmail = async (req, res) => {
+  const { token } = req.body;
+
+  await consumeEmailVerificationToken({ req, token });
+
+  res.status(200).json({
     status: 'success',
-    message: 'User registered successfully.',
-    data: {
-      user: buildSafeUserResponse(user),
-    },
+    message: 'Email verified successfully. You can now use all account features.',
   });
 };
 

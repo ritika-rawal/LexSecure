@@ -124,11 +124,14 @@ const LoginForm = () => {
   };
 
   return (
-    <div>
-      <div className="mb-8">
-        <p className="mb-2 text-sm font-semibold uppercase text-forest">{requiresMfa ? 'Identity verification' : 'Secure access'}</p>
-        <h1 className="text-3xl font-bold text-ink sm:text-4xl">{requiresMfa ? 'Enter authentication code' : 'Sign in to LexSecure'}</h1>
-        <p className="mt-3 leading-7 text-gray-600">
+    <div className="login-form">
+      <div className="mb-6">
+        <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase text-forest">
+          <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-accent" />
+          {requiresMfa ? 'Identity verification' : 'Secure access'}
+        </p>
+        <h1 className="font-display text-3xl font-semibold text-ink sm:text-4xl">{requiresMfa ? 'Enter authentication code' : 'Sign in to LexSecure'}</h1>
+        <p className="mt-2 text-sm leading-6 text-gray-600 sm:text-base">
           {requiresMfa
             ? 'Use your authenticator app or a one-time recovery code.'
             : 'Use the email and password associated with your account.'}
@@ -136,7 +139,7 @@ const LoginForm = () => {
       </div>
 
       {submitError ? (
-        <div className="mb-6 border border-red-300 bg-red-50 p-4 text-sm text-red-800" role="alert">
+        <div className="mb-6 rounded-lg border border-red-300 bg-red-50/90 p-4 text-sm text-red-800 shadow-sm backdrop-blur-md" role="alert">
           <div className="flex gap-2">
             <AlertCircle aria-hidden="true" className="h-5 w-5 shrink-0" />
             <p>{submitError}</p>
@@ -150,14 +153,14 @@ const LoginForm = () => {
       ) : null}
 
       {passwordChanged && !submitError ? (
-        <div className="mb-6 flex gap-2 border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900" role="status">
+        <div className="mb-6 flex gap-2 rounded-lg border border-emerald-300 bg-emerald-50/90 p-4 text-sm text-emerald-900 shadow-sm backdrop-blur-md" role="status">
           <CheckCircle2 aria-hidden="true" className="h-5 w-5 shrink-0" />
           <p>Password changed. Sign in again to continue.</p>
         </div>
       ) : null}
 
       {requiresMfa ? (
-        <form className="space-y-5" noValidate onSubmit={handleMfaSubmit}>
+        <form className="space-y-4" noValidate onSubmit={handleMfaSubmit}>
           <div>
             <label className="mb-2 block text-sm font-semibold text-ink" htmlFor="loginMfaCode">Authenticator or recovery code</label>
             <div className="relative">
@@ -178,12 +181,12 @@ const LoginForm = () => {
               />
             </div>
           </div>
-          <button className="flex h-12 w-full items-center justify-center gap-2 bg-forest px-5 font-semibold text-white hover:bg-forest-dark disabled:opacity-60" disabled={isSubmitting} type="submit">
+          <button className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-forest px-5 font-semibold text-white shadow-lg shadow-forest/20 hover:-translate-y-0.5 hover:bg-forest-dark disabled:opacity-60" disabled={isSubmitting} type="submit">
             {isSubmitting ? <LoaderCircle aria-hidden="true" className="h-5 w-5 animate-spin" /> : null}
             {isSubmitting ? 'Verifying' : 'Verify and sign in'}
           </button>
           <button
-            className="h-11 w-full border border-gray-300 bg-white px-4 text-sm font-semibold"
+            className="h-11 w-full rounded-lg border border-white/90 bg-white/70 px-4 text-sm font-semibold shadow-sm backdrop-blur-md hover:bg-white"
             disabled={isSubmitting}
             onClick={() => {
               setRequiresMfa(false);
@@ -196,7 +199,7 @@ const LoginForm = () => {
           </button>
         </form>
       ) : (
-      <form className="space-y-5" noValidate onSubmit={handleSubmit}>
+      <form className="space-y-4" noValidate onSubmit={handleSubmit}>
         <div>
           <label className="mb-2 block text-sm font-semibold text-ink" htmlFor="loginEmail">
             Email address
@@ -277,7 +280,7 @@ const LoginForm = () => {
           </div>
         ) : null}
 
-        <button className="flex h-12 w-full items-center justify-center gap-2 bg-forest px-5 font-semibold text-white hover:bg-forest-dark disabled:opacity-60" disabled={isSubmitting || (captchaRequired && !captchaToken)} type="submit">
+        <button className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-forest px-5 font-semibold text-white shadow-lg shadow-forest/20 hover:-translate-y-0.5 hover:bg-forest-dark disabled:opacity-60" disabled={isSubmitting || (captchaRequired && !captchaToken)} type="submit">
           {isSubmitting ? <LoaderCircle aria-hidden="true" className="h-5 w-5 animate-spin" /> : null}
           {isSubmitting ? 'Signing in' : 'Sign in'}
         </button>
@@ -285,7 +288,7 @@ const LoginForm = () => {
 
       )}
 
-      {!requiresMfa ? <p className="mt-7 border-t border-line pt-6 text-center text-sm text-gray-600">
+      {!requiresMfa ? <p className="mt-6 border-t border-white/80 pt-5 text-center text-sm text-gray-600">
         Need an account?{' '}
         <Link className="font-semibold text-forest hover:underline" to="/register">Create one</Link>
       </p> : null}

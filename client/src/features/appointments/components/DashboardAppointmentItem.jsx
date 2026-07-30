@@ -85,9 +85,9 @@ const DashboardAppointmentItem = ({ appointment, onChanged }) => {
   };
 
   return (
-    <article className="border border-line bg-white" aria-labelledby={`dashboard-appointment-${appointment.id}`}>
+    <article className={`overflow-hidden rounded-lg border bg-white/70 shadow-lg backdrop-blur-xl transition hover:shadow-panel ${viewerIsClient ? 'client-appointment-card border-white/90' : 'border-line'}`} aria-labelledby={`dashboard-appointment-${appointment.id}`}>
       <div className="grid md:grid-cols-[220px_minmax(0,1fr)]">
-        <div className="border-b border-line bg-ink px-5 py-5 text-white md:border-b-0 md:border-r">
+        <div className="border-b border-white/10 bg-ink px-5 py-5 text-white md:border-b-0 md:border-r">
           <p className="text-xs font-semibold uppercase text-emerald-200">Consultation</p>
           <p className="mt-3 text-lg font-bold leading-7">
             {formatAppointmentDate(appointment.startsAt, appointment.timezone)}
@@ -113,7 +113,7 @@ const DashboardAppointmentItem = ({ appointment, onChanged }) => {
                   {appointment.participant.fullName}
                 </h2>
               </div>
-              <span className={`w-fit border px-3 py-1.5 text-sm font-semibold capitalize ${STATUS_STYLES[appointment.status] || STATUS_STYLES.cancelled}`}>
+              <span className={`w-fit rounded-lg border px-3 py-1.5 text-sm font-semibold capitalize ${STATUS_STYLES[appointment.status] || STATUS_STYLES.cancelled}`}>
                 {appointment.status}
               </span>
             </div>

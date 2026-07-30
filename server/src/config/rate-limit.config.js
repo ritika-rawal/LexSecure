@@ -84,3 +84,9 @@ export const accountImportRateLimiter = createRateLimiter({
   limit: RATE_LIMIT_MAXIMUMS.ACCOUNT_IMPORT,
   message: 'Too many account import attempts. Try again later.',
 });
+
+export const emailVerificationConfirmRateLimiter = createRateLimiter({
+  windowMs: RATE_LIMIT_WINDOWS_MS.AUTHENTICATION,
+  limit: RATE_LIMIT_MAXIMUMS.EMAIL_VERIFICATION_CONFIRM,
+  message: 'Too many verification attempts. Try again later.',
+});

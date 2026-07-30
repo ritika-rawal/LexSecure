@@ -49,3 +49,25 @@ export const sendPasswordResetEmail = async ({ recipient, resetUrl }) => {
     ].join('\n'),
   });
 };
+
+export const sendVerificationEmail = async ({ recipient, verificationUrl }) => {
+  if (!appConfig.smtp) {
+    // No SMTP configured in this environment (e.g. local development). Log the
+    // link so the flow remains testable without a real mail server.
+    console.log(`[dev-only] Email verification link for ${recipient}: ${verificationUrl}`);
+    return;
+  }
+
+  await getTransporter().sendMail({
+    from: appConfig.smtp.from,
+    to: recipient,
+    subject: 'Verify your LexSecure email address',
+    text: [
+      'Thanks for registering with LexSecure.',
+      '',
+      `Verify your email within 24 hours: ${verificationUrl}`,
+      '',
+      'If you did not create this account, you can ignore this email.',
+    ].join('\n'),
+  });
+};

@@ -9,14 +9,14 @@ import {
   ChevronRight,
   LoaderCircle,
   RefreshCw,
-  Scale,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { USER_ROLES } from '../../auth/constants/userRoles.js';
 import { useAuth } from '../../auth/hooks/useAuth.js';
 import { getAuthApiError } from '../../auth/utils/apiError.js';
-import AuthenticatedHeaderActions from '../../notifications/components/AuthenticatedHeaderActions.jsx';
+import ClientWorkspaceHeader from '../../auth/components/ClientWorkspaceHeader.jsx';
+import LawyerWorkspaceHeader from '../../auth/components/LawyerWorkspaceHeader.jsx';
 import { getMyAppointments } from '../api/appointmentDashboard.api.js';
 import AppointmentHistoryFilters from '../components/AppointmentHistoryFilters.jsx';
 import DashboardAppointmentItem from '../components/DashboardAppointmentItem.jsx';
@@ -107,25 +107,14 @@ const AppointmentDashboardPage = () => {
   };
 
   return (
-    <main className="min-h-screen bg-[#f4f6f5] text-ink">
-      <header className="border-b border-line bg-white">
-        <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center bg-ink text-white">
-              <Scale aria-hidden="true" className="h-5 w-5" />
-            </span>
-            <div>
-              <span className="block text-lg font-bold leading-5">LexSecure</span>
-              <span className="text-xs text-gray-500">
-                {isClient ? 'Client workspace' : 'Lawyer workspace'}
-              </span>
-            </div>
-          </div>
-          <AuthenticatedHeaderActions />
-        </div>
-      </header>
+    <main className="min-h-screen bg-[#e8eeeb] text-ink">
+      {isClient ? (
+        <ClientWorkspaceHeader activePath="/client/appointments" />
+      ) : (
+        <LawyerWorkspaceHeader activePath="/lawyer/schedule" />
+      )}
 
-      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
+      <div className="client-page-enter mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-10">
         <Link
           className="mb-7 inline-flex items-center gap-2 text-sm font-semibold text-forest hover:underline"
           to={isClient ? '/client/account' : '/lawyer/account'}
@@ -139,7 +128,7 @@ const AppointmentDashboardPage = () => {
             <p className="mb-2 text-sm font-semibold uppercase text-forest">
               {isClient ? 'Consultation tracking' : 'Consultation schedule'}
             </p>
-            <h1 className="text-3xl font-bold sm:text-4xl">
+            <h1 className="font-display text-3xl font-semibold sm:text-4xl">
               {isClient ? 'My appointments' : 'My schedule'}
             </h1>
             <p className="mt-2 max-w-2xl text-gray-600">
@@ -147,7 +136,7 @@ const AppointmentDashboardPage = () => {
             </p>
           </div>
           <button
-            className="flex h-10 w-fit items-center gap-2 border border-gray-300 bg-white px-4 text-sm font-semibold hover:bg-gray-100 disabled:opacity-60"
+            className="flex h-10 w-fit items-center gap-2 rounded-lg border border-white/90 bg-white/70 px-4 text-sm font-semibold shadow-sm backdrop-blur-lg hover:bg-white disabled:opacity-60"
             disabled={isLoading}
             onClick={refreshDashboard}
             type="button"
@@ -157,8 +146,8 @@ const AppointmentDashboardPage = () => {
           </button>
         </div>
 
-        <div className="mb-7 overflow-x-auto border-y border-line bg-white" aria-label="Appointment status filter">
-          <div className="flex min-w-max border-b border-line px-2">
+        <div className="mb-7 overflow-x-auto rounded-lg border border-white/90 bg-white/60 shadow-lg shadow-ink/5 backdrop-blur-xl" aria-label="Appointment status filter">
+          <div className="flex min-w-max border-b border-white/80 px-2">
             {APPOINTMENT_VIEW_FILTERS.map((filter) => (
               <button
                 aria-pressed={view === filter.value}
@@ -233,14 +222,14 @@ const AppointmentDashboardPage = () => {
         ) : null}
 
         {isLoading ? (
-          <div className="flex min-h-64 items-center justify-center gap-2 border border-line bg-white text-sm font-semibold" aria-busy="true" aria-live="polite">
+          <div className="flex min-h-64 items-center justify-center gap-2 rounded-lg border border-white/90 bg-white/65 text-sm font-semibold shadow-lg shadow-ink/5 backdrop-blur-xl" aria-busy="true" aria-live="polite">
             <LoaderCircle aria-hidden="true" className="h-5 w-5 animate-spin text-forest" />
             Loading appointments
           </div>
         ) : null}
 
         {!isLoading && !loadError && appointments.length === 0 ? (
-          <section className="border border-line bg-white px-6 py-16 text-center">
+          <section className="rounded-lg border border-white/90 bg-white/65 px-6 py-16 text-center shadow-lg shadow-ink/5 backdrop-blur-xl">
             <CalendarRange aria-hidden="true" className="mx-auto mb-4 h-10 w-10 text-forest" />
             <h2 className="text-xl font-bold">No appointments found</h2>
             <p className="mt-2 text-gray-600">
@@ -271,7 +260,7 @@ const AppointmentDashboardPage = () => {
               <nav className="flex items-center justify-end gap-2" aria-label="Appointment dashboard pages">
                 <button
                   aria-label="Previous page"
-                  className="grid h-10 w-10 place-items-center border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-40"
+                  className="grid h-10 w-10 place-items-center rounded-lg border border-white/90 bg-white/70 shadow-sm hover:bg-white disabled:opacity-40"
                   disabled={page <= 1}
                   onClick={() => setPage((current) => Math.max(1, current - 1))}
                   title="Previous page"
@@ -281,7 +270,7 @@ const AppointmentDashboardPage = () => {
                 </button>
                 <button
                   aria-label="Next page"
-                  className="grid h-10 w-10 place-items-center border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-40"
+                  className="grid h-10 w-10 place-items-center rounded-lg border border-white/90 bg-white/70 shadow-sm hover:bg-white disabled:opacity-40"
                   disabled={page >= pagination.totalPages}
                   onClick={() => setPage((current) => current + 1)}
                   title="Next page"

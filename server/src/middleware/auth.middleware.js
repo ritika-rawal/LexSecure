@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 import { SESSION_COOKIE_NAME, sessionCookieOptions } from '../config/session.config.js';
+import { EMAIL_VERIFICATION_REQUIRED_ERROR_CODE } from '../constants/email-verification.js';
 import { USER_ROLE_VALUES } from '../constants/user-roles.js';
 import { User } from '../models/User.model.js';
 import { buildSafeUserResponse } from '../utils/safe-user.js';
@@ -55,6 +56,21 @@ export const requireAuthentication = async (req, res, next) => {
   }
 
   req.user = buildSafeUserResponse(user);
+  next();
+};
+
+export const requireVerifiedEmail = (req, res, next) => {
+  if (!req.user) {
+    throw createAuthenticationError();
+  }
+
+  if (!req.user.isEmailVerified) {
+    const error = new Error('Verify your email address before continuing.');
+    error.statusCode = 403;
+    error.publicCode = EMAIL_VERIFICATION_REQUIRED_ERROR_CODE;
+    throw error;
+  }
+
   next();
 };
 
