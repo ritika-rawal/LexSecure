@@ -45,11 +45,12 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
+
       - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=moderate
+        run: npx --yes better-npm-audit@3.11.0 audit --production --level moderate --exclude 1124282
 
       - name: Audit all dependencies
-        run: npm audit --audit-level=high
+        run: npx --yes better-npm-audit@3.11.0 audit --level high --exclude 1124282
 
       - name: Validate backend JavaScript syntax
         shell: bash
